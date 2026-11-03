@@ -27,16 +27,16 @@ Authentication → Emails → Templates. Застосунок просить в�
 - *Confirm signup* — тема «Код підтвердження Octopus Wind», текст: `Ваш код: {{ .Token }}. Він дійсний 10 хвилин.`
 - *Reset password* — тема «Код для зміни пароля», текст: `Код для зміни пароля: {{ .Token }}. Він дійсний 10 хвилин.`
 
-## 4. Пошта wind@octopus-capital.ventures (GoDaddy)
+## 4. Пошта anton@octopus-capital.ventures (GoDaddy)
 Authentication → Emails → SMTP Settings → Enable custom SMTP:
 
 | Поле | Professional Email (GoDaddy / Titan) | Microsoft 365 від GoDaddy |
 | --- | --- | --- |
 | Host | `smtpout.secureserver.net` | `smtp.office365.com` |
 | Port | 465 | 587 |
-| Username | `wind@octopus-capital.ventures` | `wind@octopus-capital.ventures` |
+| Username | `anton@octopus-capital.ventures` | `anton@octopus-capital.ventures` |
 | Password | пароль скриньки | пароль скриньки (SMTP AUTH має бути дозволено) |
-| Sender email / name | `wind@octopus-capital.ventures` / `Octopus Wind` | те саме |
+| Sender email / name | `anton@octopus-capital.ventures` / `Octopus Wind` | те саме |
 
 DNS домену `octopus-capital.ventures` у GoDaddy: перевірте SPF (`v=spf1 include:secureserver.net -all` або
 `include:spf.protection.outlook.com` для Microsoft 365) і DKIM, інакше листи потраплятимуть у спам.
