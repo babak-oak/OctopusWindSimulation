@@ -61,7 +61,45 @@ function kpiNote(k: keyof Kpis, r: Result, a: Assumptions, lang: Lang): string |
   if (k === 'paybackEquityYears') return L(lang,
     `Пряма окупність, без дисконтування. Наростаючий потік інвестора рахується з першого внеску (${start}): мінус внески капіталу за ${C} міс. будівництва, плюс дивіденди (${div}). Окупність — момент, коли отримані дивіденди зрівнюються з внесеним капіталом (з інтерполяцією всередині місяця). Показник — роки від введення в експлуатацію (${cod}) до цього моменту.`,
     `Simple payback, undiscounted. The cumulative investor flow starts at the first contribution (${start}): minus equity contributed over ${C} construction months, plus dividends (${div}). Payback is when dividends received equal equity contributed (interpolated within the month). The figure is the years from COD (${cod}) to that point.`);
-  return null;
+  const f = a.finance;
+  const wacc = pct(r.kpis.wacc, 2);
+  const notes: Partial<Record<keyof Kpis, [string, string]>> = {
+    equityIrr: [
+      `Номінальна ставка в EUR (XIRR за датами кінця місяця), за якої NPV потоку інвестора дорівнює нулю. Потік інвестора: мінус внески капіталу помісячно за ${C} міс. будівництва (з ${start}), плюс дивіденди (${div}) за весь строк. Дивіденди — усі гроші понад мінімальний залишок і сезонний резерв; після податків.`,
+      `Nominal EUR rate (XIRR on month-end dates) at which the NPV of the investor flow is zero. Investor flow: minus monthly equity contributions over ${C} construction months (from ${start}), plus dividends (${div}) over the whole life. Dividends are all cash above the minimum balance and the seasonal reserve; after tax.`],
+    projectIrr: [
+      `Номінальна ставка в EUR (XIRR) потоку проєкту без кредиту: мінус CAPEX з ПДВ на будівництві, далі EBITDA мінус податок без боргового щита, плюс повернення ПДВ і компенсація. Не залежить від структури фінансування.`,
+      `Nominal EUR rate (XIRR) of the unlevered project flow: minus CAPEX incl. VAT during construction, then EBITDA less unlevered tax, plus VAT recovered and the grant. Independent of the financing structure.`],
+    npvProject: [
+      `Потік проєкту (як для IRR проєкту), дисконтований за WACC після податків ${wacc} = ${pct(1 - f.debtShare, 0)} × ${pct(f.costOfEquity, 1)} + ${pct(f.debtShare, 0)} × ${pct(f.rate, 1)} × (1 − ${pct(f.taxRate, 0)}). Дисконтування за датами (XNPV) до кінця першого місяця будівництва.`,
+      `Project flow (as for project IRR) discounted at the after-tax WACC ${wacc} = ${pct(1 - f.debtShare, 0)} × ${pct(f.costOfEquity, 1)} + ${pct(f.debtShare, 0)} × ${pct(f.rate, 1)} × (1 − ${pct(f.taxRate, 0)}). Date-based discounting (XNPV) to the end of the first construction month.`],
+    ebitdaAvg5: [
+      `Сума EBITDA за перші 60 місяців експлуатації (від ${cod}), поділена на 5. EBITDA = чистий дохід після комісії трейдера мінус OPEX.`,
+      `Sum of EBITDA over the first 60 months of operation (from ${cod}) divided by 5. EBITDA = revenue after the trader fee less OPEX.`],
+    ebitdaToCapex: [
+      `Середня EBITDA за перші 5 років, поділена на CAPEX без ПДВ і без фінансування (без капіталізованих відсотків і комісії, з непередбачуваними).`,
+      `Average EBITDA over the first 5 years divided by CAPEX ex VAT and ex financing (no capitalised interest or fee; contingency included).`],
+    npToEquity: [
+      `Середній річний чистий прибуток за ${a.project.lifeYears} років експлуатації (сума прибутку / ${a.project.lifeYears}), поділений на весь внесений капітал.`,
+      `Average annual net profit over ${a.project.lifeYears} operating years (total profit / ${a.project.lifeYears}) divided by total equity contributed.`],
+    lcoe: [
+      `Дисконтовані за WACC ${wacc} витрати (CAPEX без ПДВ + OPEX за весь строк), поділені на дисконтовану генерацію. Без податків, ПДВ і витрат на фінансування.`,
+      `Costs (CAPEX ex VAT + lifetime OPEX) discounted at WACC ${wacc}, divided by discounted generation. Excludes taxes, VAT and financing costs.`],
+    dscrMin: [
+      `Найменший річний DSCR за ${f.tenorYears} років кредиту. Рік кредиту — 4 квартали від введення. DSCR = (EBITDA − податок + повернення ПДВ) / (тіло + відсотки). Квартальні значення — на вкладці «Борг».`,
+      `Lowest annual DSCR over the ${f.tenorYears} loan years. A loan year is 4 quarters from COD. DSCR = (EBITDA − tax + VAT recovered) / (principal + interest). Quarterly values are on the Debt tab.`],
+    dscrAvg: [
+      `Середнє річних DSCR за ${f.tenorYears} років кредиту; рік кредиту — 4 квартали від введення. DSCR = (EBITDA − податок + повернення ПДВ) / (тіло + відсотки).`,
+      `Average of annual DSCRs over the ${f.tenorYears} loan years; a loan year is 4 quarters from COD. DSCR = (EBITDA − tax + VAT recovered) / (principal + interest).`],
+    llcr: [
+      `Грошовий потік для обслуговування боргу за строк кредиту, дисконтований за ставкою кредиту ${pct(f.rate, 1)} до дати введення (${cod}), поділений на залишок кредиту на цю дату.`,
+      `Cash flow available for debt service over the loan life, discounted at the loan rate ${pct(f.rate, 1)} to COD (${cod}), divided by the debt outstanding at COD.`],
+    capexPerKW: [
+      `CAPEX без ПДВ (з непередбачуваними, без капіталізованих відсотків і комісії), поділений на встановлену потужність ${num(capacityKW(a) / 1000, 1)} МВт.`,
+      `CAPEX ex VAT (contingency included, capitalised interest and fee excluded) divided by installed capacity of ${num(capacityKW(a) / 1000, 1)} MW.`],
+  };
+  const n = notes[k];
+  return n ? L(lang, n[0], n[1]) : null;
 }
 
 function Overview({ r, base, scenario, lang, a }: Props) {
