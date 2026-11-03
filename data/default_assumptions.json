@@ -66,12 +66,12 @@
     "id": "foundations",
     "nameUk": "Фундаменти",
     "nameEn": "Foundations",
-    "qty": 75000,
+    "qty": 72000,
     "rate": 100,
     "currency": "EUR",
     "vat": true,
     "schedule": "works",
-    "source": "Input!K61"
+    "source": "просчет Сани для Степана_1.xlsx!E2: 100 €/kW × 72 MW"
    },
    {
     "id": "roads",
@@ -121,12 +121,12 @@
     "id": "grid",
     "nameUk": "Приєднання до мережі",
     "nameEn": "Grid connection",
-    "qty": 75000,
+    "qty": 72000,
     "rate": 467,
     "currency": "UAH",
     "vat": true,
     "schedule": "works",
-    "source": "Input!K66"
+    "source": "просчет Сани для Степана_1.xlsx!E7: 467 UAH/kW × 72 MW"
    },
    {
     "id": "relay",
@@ -154,23 +154,23 @@
     "id": "site",
     "nameUk": "Підготовка майданчика",
     "nameEn": "Site preparation",
-    "qty": 75000,
+    "qty": 72000,
     "rate": 100,
     "currency": "EUR",
     "vat": true,
     "schedule": "works",
-    "source": "Input!K70"
+    "source": "просчет Сани для Степана_1.xlsx!E11: 100 €/kW × 72 MW"
    },
    {
     "id": "dev",
     "nameUk": "Девелопмент і проєкт",
     "nameEn": "Development and design",
-    "qty": 75000,
-    "rate": 100,
+    "qty": 72000,
+    "rate": 60,
     "currency": "EUR",
     "vat": true,
     "schedule": "dev",
-    "source": "Decision 03.11.2026"
+    "source": "просчет Сани для Степана_1.xlsx!E10: 60 €/kW × 72 MW"
    }
   ]
  },

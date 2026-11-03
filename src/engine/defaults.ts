@@ -1,6 +1,9 @@
 import type { Assumptions } from './types';
 
 const KW = 75_000;
+/** Project (grid) capacity in the SANY offer: 72 MW of 75 MW installed. */
+const GRID_KW = 72_000;
+const SANY = 'просчет Сани для Степана_1.xlsx';
 
 /** Reference case: 12 x 6.25 MW SANY, 75 MW, Volodymyrets (ТЗ, розділ 4). */
 export function defaultAssumptions(): Assumptions {
@@ -36,16 +39,16 @@ export function defaultAssumptions(): Assumptions {
       items: [
         { id: 'wtg', nameUk: 'ВЕУ з доставкою', nameEn: 'Wind turbines incl. delivery', qty: KW, rate: 655, currency: 'EUR', vat: false, schedule: 'turbine', source: 'SANY offer, 655 €/kW delivered' },
         { id: 'montage', nameUk: 'Монтаж ВЕУ', nameEn: 'Turbine installation', qty: KW, rate: 80, currency: 'EUR', vat: true, schedule: 'montage', source: 'Input!K67' },
-        { id: 'foundations', nameUk: 'Фундаменти', nameEn: 'Foundations', qty: KW, rate: 100, currency: 'EUR', vat: true, schedule: 'works', source: 'Input!K61' },
+        { id: 'foundations', nameUk: 'Фундаменти', nameEn: 'Foundations', qty: GRID_KW, rate: 100, currency: 'EUR', vat: true, schedule: 'works', source: `${SANY}!E2: 100 €/kW × 72 MW` },
         { id: 'roads', nameUk: 'Дороги', nameEn: 'Roads', qty: 16.37, rate: 16_000_000, currency: 'UAH', vat: true, schedule: 'works', source: 'Decision 03.11.2026' },
         { id: 'cables', nameUk: 'Внутрішні кабелі 35 кВ', nameEn: 'Internal 35 kV cables', qty: 25, rate: 5_000_000, currency: 'UAH', vat: true, schedule: 'works', source: 'Input!K63, M63' },
         { id: 'cableSub', nameUk: 'Кабель до підстанції', nameEn: 'Cable to substation', qty: 1, rate: 8_000_000, currency: 'UAH', vat: true, schedule: 'works', source: 'Input!K64, M64' },
         { id: 'substation', nameUk: 'Підстанція', nameEn: 'Substation', qty: 1, rate: 6_200_000, currency: 'EUR', vat: true, schedule: 'works', source: 'Input!L68' },
-        { id: 'grid', nameUk: 'Приєднання до мережі', nameEn: 'Grid connection', qty: KW, rate: 467, currency: 'UAH', vat: true, schedule: 'works', source: 'Input!K66' },
+        { id: 'grid', nameUk: 'Приєднання до мережі', nameEn: 'Grid connection', qty: GRID_KW, rate: 467, currency: 'UAH', vat: true, schedule: 'works', source: `${SANY}!E7: 467 UAH/kW × 72 MW` },
         { id: 'relay', nameUk: 'Релейний захист РАЕС', nameEn: 'Relay protection (RAES)', qty: 1, rate: 42_735, currency: 'EUR', vat: true, schedule: 'works', source: 'Input!K65' },
         { id: 'scada', nameUk: 'АСКОЕ, телемеханіка, відеонагляд', nameEn: 'Metering, SCADA, CCTV', qty: 1, rate: 6_600_000, currency: 'UAH', vat: true, schedule: 'works', source: 'CapEx!G29:G30' },
-        { id: 'site', nameUk: 'Підготовка майданчика', nameEn: 'Site preparation', qty: KW, rate: 100, currency: 'EUR', vat: true, schedule: 'works', source: 'Input!K70' },
-        { id: 'dev', nameUk: 'Девелопмент і проєкт', nameEn: 'Development and design', qty: KW, rate: 100, currency: 'EUR', vat: true, schedule: 'dev', source: 'Decision 03.11.2026' },
+        { id: 'site', nameUk: 'Підготовка майданчика', nameEn: 'Site preparation', qty: GRID_KW, rate: 100, currency: 'EUR', vat: true, schedule: 'works', source: `${SANY}!E11: 100 €/kW × 72 MW` },
+        { id: 'dev', nameUk: 'Девелопмент і проєкт', nameEn: 'Development and design', qty: GRID_KW, rate: 60, currency: 'EUR', vat: true, schedule: 'dev', source: `${SANY}!E10: 60 €/kW × 72 MW` },
       ],
     },
     schedule: {

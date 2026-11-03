@@ -58,7 +58,9 @@ describe('financing (ТЗ 5.5)', () => {
     expect(r.kpis.fee / r.kpis.debt).toBeCloseTo(0.005, 9);
   });
   it('development is paid by equity in month 1', () => {
-    expect(r.flows.equityIn[0]).toBeGreaterThanOrEqual(7_500_000 * 1.2);
+    const dev = r.capexByItem.find((i) => i.id === 'dev')!;
+    expect(dev.exVat).toBeCloseTo(60 * 72_000, 4);
+    expect(r.flows.equityIn[0]).toBeGreaterThanOrEqual(dev.exVat + dev.vat);
   });
   it('no repayment before COD, 40 equal quarterly instalments after', () => {
     expect(sum(r.flows.principal.slice(0, 18))).toBe(0);
