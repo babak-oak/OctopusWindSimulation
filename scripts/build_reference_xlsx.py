@@ -52,6 +52,7 @@ rows = [
     ('Проєкт',),
     ('i_turbines', 'Кількість ВЕУ', p['turbines'], 'шт.', 'Input!K26'),
     ('i_turbineMW', 'Потужність ВЕУ', p['turbineMW'], 'МВт', 'Input!K24'),
+    ('i_gridMW', 'Проєктна потужність (приєднання)', p['gridMW'], 'МВт', 'Пропозиція SANY, C16'),
     ('i_start', 'Початок будівництва (місяць 1)', '2027-03-01', 'дата', 'Рішення 03.11.2026'),
     ('i_C', 'Тривалість будівництва', p['constructionMonths'], 'міс.', 'Рішення 03.11.2026'),
     ('i_life', 'Строк експлуатації', p['lifeYears'], 'років', 'Рішення 03.11.2026'),
@@ -227,10 +228,14 @@ items = A['capex']['items']
 first = 4
 for j, it in enumerate(items):
     rr = first + j
-    vals = [it['id'], it['nameUk'], it['qty'], it['rate'], it['currency'], 1 if it['vat'] else 0, it['schedule']]
+    basis = it.get('qtyBasis')
+    qty = '=d_kw' if basis == 'installedKW' else ('=i_gridMW*1000' if basis == 'gridKW' else it['qty'])
+    vals = [it['id'], it['nameUk'], qty, it['rate'], it['currency'], 1 if it['vat'] else 0, it['schedule']]
     for c, v in enumerate(vals, 1):
         cell = wc.cell(row=rr, column=c, value=v)
-        cell.font = f_in if c in (3, 4, 5, 6, 7) else f_norm
+        cell.font = f_in if c in (4, 5, 6, 7) or (c == 3 and not basis) else f_norm
+        if c == 3:
+            cell.number_format = NUM
     wc.cell(row=rr, column=8, value=f'=C{rr}*D{rr}/IF(E{rr}="UAH",i_fx,1)*i_capexMult').number_format = NUM
     wc.cell(row=rr, column=9, value=f'=H{rr}*F{rr}*i_vat').number_format = NUM
     wc.cell(row=rr, column=10, value=it['source']).font = f_norm

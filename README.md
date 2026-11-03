@@ -31,3 +31,13 @@ python3 -I scripts/compare_reference.py <cases_dir> data <recalc.py>   # engine 
 - Construction month 1 = March 2027; COD 31.08.2028; operation to 31.08.2053; reports by calendar year.
 - Debt: 65% of funding (CAPEX incl. VAT on works, capitalised interest, fee); grace to COD; 40 equal quarterly instalments.
 - DSCR is reported per loan year (four quarters from COD): quarterly values swing with wind seasonality.
+
+## Web app (stage 2)
+
+`npm run dev` for local work, `npm run build` for `dist/`. Every push to `main` runs the tests, builds the app and
+deploys it to GitHub Pages (`.github/workflows/pages.yml`): https://babak-oak.github.io/OctopusWindSimulation/
+
+Screens: assumptions with sources and reset, OEM presets, 15% compensation popup; results tabs Overview, Generation
+and price, CAPEX and construction, P&L, Balance sheet, Cash flow, Debt, Sensitivity (A table, B waterfall, C grid),
+Risks. UA / EN, Deep Sea / Ivory themes, Octopus design system with the ISO 24896 notation. Until stage 3 (Supabase
+accounts) the project is kept in the browser's local storage.

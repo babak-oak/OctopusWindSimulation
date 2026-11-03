@@ -15,8 +15,14 @@ export function annualGeneration(a: Assumptions): number {
 }
 
 /** Item amount in EUR ex VAT, before contingency and stress multiplier. */
-export function itemAmount(a: Assumptions, i: { qty: number; rate: number; currency: string }): number {
-  const v = i.qty * i.rate;
+export function itemQty(a: Assumptions, i: { qty: number; qtyBasis?: string }): number {
+  if (i.qtyBasis === 'installedKW') return capacityKW(a);
+  if (i.qtyBasis === 'gridKW') return a.project.gridMW * 1000;
+  return i.qty;
+}
+
+export function itemAmount(a: Assumptions, i: { qty: number; qtyBasis?: string; rate: number; currency: string }): number {
+  const v = itemQty(a, i) * i.rate;
   return i.currency === 'UAH' ? v / a.fx.uahPerEur : v;
 }
 

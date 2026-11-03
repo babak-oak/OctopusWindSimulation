@@ -1,0 +1,53 @@
+export type Lang = 'uk' | 'en';
+export type T = { uk: string; en: string };
+
+export const S = {
+  app: { uk: 'Економіка ВЕС', en: 'Wind farm economics' },
+  assumptions: { uk: 'Припущення', en: 'Assumptions' },
+  results: { uk: 'Результати', en: 'Results' },
+  reset: { uk: 'Повернути за замовчуванням', en: 'Reset to default' },
+  resetAll: { uk: 'Скинути всі', en: 'Reset all' },
+  changed: { uk: 'змінено', en: 'changed' },
+  source: { uk: 'Джерело', en: 'Source' },
+  scenario: { uk: 'Сценарій', en: 'Scenario' },
+  theme: { uk: 'Тема', en: 'Theme' },
+  dark: { uk: 'Темна', en: 'Dark' },
+  light: { uk: 'Світла', en: 'Light' },
+  base: { uk: 'База', en: 'Base' },
+  s1: { uk: 'S1 Обмеження Укренерго', en: 'S1 Ukrenergo curtailment' },
+  s2: { uk: 'S2 CAPEX +10%', en: 'S2 CAPEX +10%' },
+  s3: { uk: 'S3 РДН −20%', en: 'S3 DAM −20%' },
+  s4: { uk: 'S4 Комбінований', en: 'S4 Combined' },
+  tabOverview: { uk: 'Огляд', en: 'Overview' },
+  tabGen: { uk: 'Генерація і ціна', en: 'Generation and price' },
+  tabCapex: { uk: 'CAPEX і будівництво', en: 'CAPEX and construction' },
+  tabPL: { uk: 'P&L', en: 'P&L' },
+  tabBS: { uk: 'Баланс', en: 'Balance sheet' },
+  tabCF: { uk: 'Рух коштів', en: 'Cash flow' },
+  tabDebt: { uk: 'Борг', en: 'Debt' },
+  tabSens: { uk: 'Сенситивність', en: 'Sensitivity' },
+  tabRisk: { uk: 'Ризики', en: 'Risks' },
+  entity: { uk: 'ВЕС', en: 'Wind farm' },
+  eurM: { uk: 'млн €', en: 'EUR m' },
+  years: { uk: 'років', en: 'years' },
+  balanceOk: { uk: 'Баланс сходиться', en: 'Balance sheet balances' },
+  balanceBad: { uk: 'Баланс не сходиться', en: 'Balance sheet does not balance' },
+  calculating: { uk: 'Рахую…', en: 'Calculating…' },
+  oem: { uk: 'Пресет OEM', en: 'OEM preset' },
+  custom: { uk: 'Власні значення', en: 'Custom' },
+  close: { uk: 'Закрити', en: 'Close' },
+  enable: { uk: 'Увімкнути', en: 'Enable' },
+  aepNote: {
+    uk: 'Net AEP враховує лише затінення. Доступність і технологічні втрати застосовуються зверху, якщо перемикач вимкнений.',
+    en: 'Net AEP includes wake losses only. Availability and technical losses are applied on top while the switch is off.',
+  },
+  outOfRange: { uk: 'поза звичайним діапазоном', en: 'outside the usual range' },
+  ivoryNote: { uk: 'Усі суми в EUR без ПДВ.', en: 'All amounts in EUR, ex VAT.' },
+  grantTitle: { uk: 'Компенсація 15% («Зроблено в Україні»)', en: '15% compensation ("Made in Ukraine")' },
+  grantBody: {
+    uk: 'Держава повертає 15% вартості без ПДВ обладнання українського виробництва з локалізацією понад 40%, включеного до переліку Мінекономіки. Купівля — через уповноважений банк; заява з платіжкою та актом приймання-передачі. Обладнання не можна відчужувати 3 роки, інакше компенсацію повертають. Програму продовжено до 30.09.2028: купівля і заява — до цієї дати. Увага: модель бере базою весь CAPEX, але фактично під програму підпадає лише обладнання з переліку; роботи і турбіни іноземних OEM без локалізації не підпадають. Загальна сума виплат за програмою з листопада 2024 р. до травня 2026 р. — 180.8 млн грн. Компенсація надходить через 6 місяців після введення, не оподатковується і виплачується дивідендами.',
+    en: 'The state refunds 15% of the ex-VAT price of Ukrainian-made equipment with over 40% localisation that is on the Ministry of Economy list. Purchase through an authorised bank; claim with the payment order and the acceptance certificate. The equipment cannot be sold for 3 years or the refund is returned. The programme runs to 30.09.2028: purchase and claim by that date. Note: the model uses the whole CAPEX as the base, but only listed equipment qualifies; works and turbines of foreign OEMs without localisation do not. Total payouts from November 2024 to May 2026: UAH 180.8 m. The refund arrives 6 months after COD, is not taxed and is paid out as dividends.',
+  },
+} satisfies Record<string, T>;
+
+export const tr = (t: T, lang: Lang) => t[lang];

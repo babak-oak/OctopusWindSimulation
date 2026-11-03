@@ -1,0 +1,77 @@
+/* Octopus Capital design system (artifact 9rY4RmrrZJdWTtrGJWVqU6, tokens.json v1) + app changes from ТЗ, розділ 9:
+   - chart-highlight in Deep Sea is Blue (fill), so gold stays the single primary action per view
+   - chart-seq: one-hue sequential ramp for heatmaps (ink at varying opacity) */
+@import '@fontsource/comfortaa/300.css';
+@import '@fontsource/comfortaa/400.css';
+@import '@fontsource/comfortaa/600.css';
+@import '@fontsource/comfortaa/700.css';
+
+:root {
+  --Blue: #006699;
+  --tan: #c8b18b;
+  --Grey: #6e6e6e;
+  --font-sans: Comfortaa, 'Segoe UI', system-ui, sans-serif;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px; --space-12: 48px;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 16px; --radius-pill: 999px;
+  --stroke-hairline: 1px; --stroke-rule: 2px;
+}
+
+/* Deep Sea (dark, default) */
+:root, [data-theme='dark'] {
+  --surface: #0b2433;
+  --surface-raised: #10303f;
+  --surface-sunken: #081c28;
+  --border: #1f4658;
+  --border-strong: #5a8599;
+  --ink: #f4efe6;
+  --ink-muted: #a9b4bb;
+  --accent: #c8b18b;
+  --action: var(--tan);
+  --on-action: #0b2433;
+  --link: #5fb0dc;
+  --focus-ring: #5fb0dc;
+  --good: #6cc391;
+  --caution: #f0a94b;
+  --bad: #f2867d;
+  --chart-ac: var(--ink);
+  --chart-py: #8a969c;
+  --chart-pl: var(--ink);
+  --chart-fc: var(--ink);
+  --chart-highlight: var(--Blue);
+  --chart-shade-2: #b8bfc2;
+  --chart-shade-3: #7d8a90;
+  --chart-grid: var(--border);
+  --chart-seq: 244, 239, 230;
+  --shadow-overlay: 0 12px 32px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+/* Ivory (light) */
+[data-theme='light'] {
+  --surface: #f7f4ee;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f1ece3;
+  --border: #e4dccd;
+  --border-strong: #8c8170;
+  --ink: #0b2433;
+  --ink-muted: var(--Grey);
+  --accent: #7d6640;
+  --action: var(--ink);
+  --on-action: #f4efe6;
+  --link: var(--Blue);
+  --focus-ring: var(--Blue);
+  --good: #2a7349;
+  --caution: #975700;
+  --bad: #b3261e;
+  --chart-ac: var(--ink);
+  --chart-py: #878787;
+  --chart-pl: var(--ink);
+  --chart-fc: var(--ink);
+  --chart-highlight: var(--Blue);
+  --chart-shade-2: #4d5d66;
+  --chart-shade-3: #848f95;
+  --chart-grid: var(--border);
+  --chart-seq: 11, 36, 51;
+  --shadow-overlay: 0 12px 32px rgba(11, 36, 51, 0.14);
+  color-scheme: light;
+}

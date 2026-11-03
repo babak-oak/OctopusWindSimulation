@@ -8,8 +8,10 @@ export interface CapexItem {
   id: string;
   nameUk: string;
   nameEn: string;
-  /** quantity, e.g. kW, km, pcs */
+  /** quantity, e.g. kW, km, pcs; ignored when qtyBasis is set */
   qty: number;
+  /** per-kW items follow the installed or the grid (project) capacity */
+  qtyBasis?: 'installedKW' | 'gridKW';
   /** unit rate in `currency` */
   rate: number;
   currency: Currency;
@@ -24,6 +26,8 @@ export interface Assumptions {
     name: string;
     turbines: number;
     turbineMW: number;
+    /** project (grid connection) capacity, MW */
+    gridMW: number;
     /** first day of construction month 1, ISO yyyy-mm-dd */
     startDate: string;
     constructionMonths: number;
