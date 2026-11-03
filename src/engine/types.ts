@@ -19,6 +19,8 @@ export interface CapexItem {
   /** unit rate in `currency` */
   rate: number;
   currency: Currency;
+  /** unit of the quantity; the rate is per this unit */
+  qtyUnit?: 'kW' | 'km' | 'pcs' | 'set';
   /** VAT 20% applies (works and services); turbines are exempt */
   vat: boolean;
   schedule: Schedule;

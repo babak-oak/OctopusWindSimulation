@@ -23,7 +23,12 @@ function load(): Partial<Saved> {
 export function App() {
   const defaults = useMemo(() => defaultAssumptions(), []);
   const saved = useMemo(load, []);
-  const [a, setA] = useState<Assumptions>(() => (saved.a && saved.a.finance?.dividendEveryMonths ? saved.a : defaultAssumptions()));
+  const [a, setA] = useState<Assumptions>(() => {
+    if (!saved.a || !saved.a.finance?.dividendEveryMonths) return defaultAssumptions();
+    // projects saved before units were added get them from the defaults
+    const d = defaultAssumptions();
+    return { ...saved.a, capex: { ...saved.a.capex, items: saved.a.capex.items.map((i) => ({ ...i, qtyUnit: i.qtyUnit ?? d.capex.items.find((x) => x.id === i.id)?.qtyUnit })) } };
+  });
   const [lang, setLang] = useState<Lang>(saved.lang ?? 'uk');
   const [theme, setTheme] = useState<'dark' | 'light'>(saved.theme ?? 'dark');
   const [stress, setStress] = useState<StressSizes>(saved.stress ?? defaultStress);

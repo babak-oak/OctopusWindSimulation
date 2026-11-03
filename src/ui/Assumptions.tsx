@@ -140,6 +140,15 @@ function FieldRow({ f, a, d, lang, onChange }: { f: Field } & Props) {
   );
 }
 
+const QTY_UNIT: Record<string, [string, string]> = { kW: ['кВт', 'kW'], km: ['км', 'km'], pcs: ['шт.', 'pcs'], set: ['компл.', 'set'] };
+const RATE_UNIT: Record<string, [string, string]> = { kW: ['кВт', 'kW'], km: ['км', 'km'], pcs: ['шт.', 'pc'], set: ['компл.', 'set'] };
+function units(i: { qtyUnit?: string; currency: string; qtyBasis?: string }, lang: Lang) {
+  const k = i.qtyUnit ?? (i.qtyBasis ? 'kW' : 'set');
+  const li = lang === 'uk' ? 0 : 1;
+  const cur = i.currency === 'UAH' ? (lang === 'uk' ? 'грн' : 'UAH') : '€';
+  return { qty: QTY_UNIT[k][li], rate: `${cur}/${RATE_UNIT[k][li]}` };
+}
+
 export function AssumptionsPanel(p: Props) {
   const { a, d, lang, onChange } = p;
   const [open, setOpen] = useState<Record<string, boolean>>({ generation: true, market: true });
@@ -219,7 +228,7 @@ export function AssumptionsPanel(p: Props) {
                       {scaled && <div className="field-src">{auto ? (lang === 'uk' ? 'авто ' : 'auto ') : (lang === 'uk' ? 'вручну ' : 'manual ')}{basisTxt}</div>}
                     </td>
                     <td className="n">
-                      {i.qtyBasis ? num(itemQty(a, i), 0)
+                      {i.qtyBasis ? <>{num(itemQty(a, i), 0)} <span className="unit">{units(i, lang).qty}</span></>
                         : scaled ? (
                           <span className="qty-cell">
                             <NumberInput value={itemQty(a, i)} decimals={2} label={`${i.nameEn} qty`} onCommit={(v) => setItem(i.id, 'manualQty', v)} />
@@ -227,9 +236,10 @@ export function AssumptionsPanel(p: Props) {
                           </span>
                         )
                         : <NumberInput value={i.qty} decimals={2} label={`${i.nameEn} qty`} onCommit={(v) => setItem(i.id, 'qty', v)} />}
+                      {!i.qtyBasis && <span className="unit"> {units(i, lang).qty}</span>}
                     </td>
                     <td className="n"><NumberInput value={i.rate} decimals={0} label={`${i.nameEn} rate`} onCommit={(v) => setItem(i.id, 'rate', v)} />
-                      <span className="unit">{i.currency === 'UAH' ? (i.qtyBasis ? 'грн/кВт' : 'грн') : i.qtyBasis ? '€/kW' : '€'}</span></td>
+                      <span className="unit">{units(i, lang).rate}</span></td>
                   </tr>
                 );
               })}
