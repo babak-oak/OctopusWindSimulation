@@ -1,7 +1,10 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Assumptions } from '../engine/types';
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+// Only the project origin is used: a pasted REST URL (https://<ref>.supabase.co/rest/v1/) would otherwise
+// turn every auth call into /rest/v1/auth/v1/... and fail with "Invalid path specified in request URL".
+const rawUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
+const url = rawUrl ? (() => { try { return new URL(rawUrl).origin; } catch { return undefined; } })() : undefined;
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 /** null when the build has no Supabase settings: the app then runs in local mode (browser storage only). */

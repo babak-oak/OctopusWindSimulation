@@ -47,7 +47,7 @@ Project Settings → API: скопіюйте **Project URL** і **anon public** 
 доступ до даних обмежують правила з кроку 2).
 
 GitHub → репозиторій → Settings → Secrets and variables → Actions → вкладка **Variables** → New repository variable:
-- `VITE_SUPABASE_URL` = Project URL
+- `VITE_SUPABASE_URL` = Project URL, лише `https://<ref>.supabase.co` без `/rest/v1/` (сайт і так обрізає зайвий шлях)
 - `VITE_SUPABASE_ANON_KEY` = anon public key
 
 Потім Actions → Deploy to GitHub Pages → Run workflow. Через 1–2 хвилини на сайті з'являться «Увійти» і «Мої проєкти».
