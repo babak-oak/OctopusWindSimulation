@@ -107,6 +107,7 @@ rows = [
     ('i_tenor', 'Строк погашення після введення', fi['tenorYears'], 'років', 'Рішення 03.11.2026'),
     ('i_feePct', 'Комісія (додається до тіла)', fi['feePct'], '% кредиту', 'Рішення 03.11.2026'),
     ('i_every', 'Періодичність платежів', fi['repayEveryMonths'], 'міс.', 'Рішення 03.11.2026: щокварталу'),
+    ('i_divEvery', 'Періодичність дивідендів (12 = щогрудня)', fi['dividendEveryMonths'], 'міс.', 'Рішення 03.11.2026: щокварталу, у дати обслуговування боргу'),
     ('i_ke', 'Вартість капіталу', fi['costOfEquity'], '%', 'Рішення 03.11.2026'),
     ('i_tax', 'Податок на прибуток', fi['taxRate'], '%', 'Input!K49'),
     ('i_dep', 'Амортизація', fi['depreciationYears'], 'років', 'Рішення 03.11.2026'),
@@ -464,7 +465,12 @@ add('cfads', 'Грошовий потік для обслуговування б
 add('cOpen', 'Гроші на початок', lambda c, p, k: '=0' if k == 1 else f'={p}{R["cClose"]}')
 add('cPre', 'Гроші до дивідендів', lambda c, p, k: f'={c}{R["cOpen"]}+{c}{R["ops"]}*({c}{R["cfads"]}+{c}{R["gCash"]}-{c}{R["intPaid"]}-{c}{R["princ"]})')
 add('minC', 'Мінімальний залишок', lambda c, p, k: f'={c}{R["opex"]}+{c}{R["dClose"]}*i_rate/12')
-add('div', 'Дивіденди', lambda c, p, k: f'=IF({c}{R["t"]}=d_T,MAX(0,{c}{R["cPre"]}),IF(AND({c}{R["ops"]}=1,{c}{R["mon"]}=12),MAX(0,{c}{R["cPre"]}-{c}{R["minC"]}),0))')
+add('pre', 'Гроші за місяць до дивідендів', lambda c, p, k: f'={c}{R["ops"]}*({c}{R["cfads"]}+{c}{R["gCash"]}-{c}{R["intPaid"]}-{c}{R["princ"]})')
+add('cumPre', 'Наростаючим до дивідендів', lambda c, p, k: (f'={c}{R["pre"]}' if k == 1 else f'={p}{R["cumPre"]}+{c}{R["pre"]}'))
+add('hReq', 'Мінімальний залишок мінус наростаючий потік', lambda c, p, k: f'={c}{R["minC"]}-{c}{R["cumPre"]}')
+add('keep', 'Резерв: залишок, що покриває всі наступні місяці', lambda c, p, k: (f'={c}{R["minC"]}' if k == T else f'=MAX({c}{R["minC"]},MAX({CL(c0 + k)}{R["hReq"]}:{CL(c0 + T - 1)}{R["hReq"]})+{c}{R["cumPre"]})'))
+add('dDate', 'Дата дивідендів (1/0)', lambda c, p, k: f'=IF(OR({c}{R["t"]}=d_T,AND({c}{R["ops"]}=1,IF(i_divEvery=12,{c}{R["mon"]}=12,MOD({c}{R["o"]},i_divEvery)=0))),1,0)', '0')
+add('div', 'Дивіденди', lambda c, p, k: f'=IF({c}{R["t"]}=d_T,MAX(0,{c}{R["cPre"]}),IF({c}{R["dDate"]}=1,MAX(0,{c}{R["cPre"]}-{c}{R["keep"]}),0))')
 add('cClose', 'Гроші на кінець', lambda c, p, k: f'={c}{R["cPre"]}-{c}{R["div"]}')
 add('h5', 'БАЛАНС', None)
 add('ppe', 'Основні засоби', lambda c, p, k: (f'={c}{R["capex"]}+{c}{R["idc"]}+{c}{R["fee"]}-{c}{R["dep"]}' if k == 1 else f'={p}{R["ppe"]}+{c}{R["capex"]}+{c}{R["idc"]}+{c}{R["fee"]}-{c}{R["dep"]}'))

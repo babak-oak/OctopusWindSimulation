@@ -176,6 +176,8 @@ export function run(a: Assumptions, md: MarketData): Result {
   let debt = 0, cash = 0, ppe = 0, vatBal = 0, grantRec = 0, defInc = 0, intPayable = 0, share = 0, re = 0;
   let lcf = 0, lcfU = 0, yearTaxable = 0, yearTaxableU = 0;
   const unlevTax = zeros(T);
+  const preCash = zeros(T), minCash = zeros(T);
+  const divDate = new Array<boolean>(T).fill(false);
 
   for (let t = 1; t <= T; t++) {
     const i = t - 1;
@@ -250,26 +252,39 @@ export function run(a: Assumptions, md: MarketData): Result {
       fl.taxExpense[i] = tax;
       const np = ebitda - depM - intExp + gInc - tax;
       fl.netProfit[i] = np;
-      re += np;
 
-      // cash and dividends
-      cash += ebitda - tax + vatRec + fl.grantCash[i] - intPaid - princ;
+      // cash before dividends (dividends change nothing else, so they are set in a second pass)
+      preCash[i] = ebitda - tax + vatRec + fl.grantCash[i] - intPaid - princ;
+      minCash[i] = opex + debt * r12;
+      divDate[i] = t === T || (f.dividendEveryMonths === 12 ? month === 12 : o % f.dividendEveryMonths === 0);
       fl.cfads[i] = ebitda - tax + vatRec;
-      let div = 0;
-      if (t === T) div = Math.max(0, cash);
-      else if (month === 12) {
-        const minCash = opex + debt * r12;
-        div = Math.max(0, cash - minCash);
-      }
-      fl.dividends[i] = div; cash -= div; re -= div;
-
       fl.projectFcf[i] = ebitda - unlevTax[i] + vatRec + fl.grantCash[i];
     }
-    fl.debtClose[i] = debt; fl.cashClose[i] = cash; fl.ppeNet[i] = ppe; fl.vatBalance[i] = vatBal;
+    fl.debtClose[i] = debt; fl.ppeNet[i] = ppe; fl.vatBalance[i] = vatBal;
     fl.grantReceivable[i] = grantRec; fl.deferredIncome[i] = defInc; fl.interestPayable[i] = intPayable;
-    fl.shareCapital[i] = share; fl.retainedEarnings[i] = re;
-    const assets = ppe + vatBal + grantRec + cash;
-    const liab = debt + intPayable + defInc + share + re;
+    fl.shareCapital[i] = share;
+  }
+
+  // ---------- Dividends (ТЗ 5.7): all cash above the minimum balance, paid on dividend dates.
+  // Seasonal reserve: what stays must keep cash at or above the minimum balance in every later month
+  // even if no further dividends were paid, so low-wind summer quarters can still meet debt service.
+  const cumPre: number[] = [];
+  preCash.reduce((s2, v, i) => (cumPre[i] = s2 + v), 0);
+  for (let i = 0; i < T; i++) {
+    cash += preCash[i];
+    let div = 0;
+    if (fl.isOps[i] && divDate[i]) {
+      if (i === T - 1) div = Math.max(0, cash);
+      else {
+        let keep = minCash[i];
+        for (let k = i + 1; k < T; k++) keep = Math.max(keep, minCash[k] - (cumPre[k] - cumPre[i]));
+        div = Math.max(0, cash - keep);
+      }
+    }
+    fl.dividends[i] = div; cash -= div; re += fl.netProfit[i] - div;
+    fl.cashClose[i] = cash; fl.retainedEarnings[i] = re;
+    const assets = fl.ppeNet[i] + fl.vatBalance[i] + fl.grantReceivable[i] + cash;
+    const liab = fl.debtClose[i] + fl.interestPayable[i] + fl.deferredIncome[i] + fl.shareCapital[i] + re;
     fl.balanceCheck[i] = assets - liab;
   }
 

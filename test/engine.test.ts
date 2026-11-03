@@ -214,3 +214,22 @@ describe('capacity-driven assumptions (decision 03.11)', () => {
     expect(Math.abs(k8.equityIrr - r.kpis.equityIrr)).toBeLessThan(0.03);
   });
 });
+
+describe('quarterly dividends with a seasonal reserve', () => {
+  it('pays on debt service dates only (every 3 months from COD) and at the end', () => {
+    r.flows.dividends.forEach((v, i) => {
+      if (v > 0) expect(i === r.flows.dividends.length - 1 || (i + 1 - 18) % 3 === 0).toBe(true);
+    });
+  });
+  it('cash stays at or above zero in every stress scenario', () => {
+    (['S1', 'S2', 'S3', 'S4'] as const).forEach((s) => {
+      const x = run(applyScenario(a, s), marketData);
+      expect(Math.min(...x.flows.cashClose)).toBeGreaterThan(-1);
+    });
+  });
+  it('quarterly payout beats annual payout on equity IRR', () => {
+    const y = defaultAssumptions();
+    y.finance.dividendEveryMonths = 12;
+    expect(run(y, marketData).kpis.equityIrr).toBeLessThan(r.kpis.equityIrr);
+  });
+});

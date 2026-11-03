@@ -81,6 +81,7 @@ export function defaultAssumptions(): Assumptions {
       tenorYears: 10,
       feePct: 0.005,
       repayEveryMonths: 3,
+      dividendEveryMonths: 3,
       costOfEquity: 0.1,
       taxRate: 0.18,
       depreciationYears: 25,

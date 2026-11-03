@@ -84,6 +84,7 @@ export const GROUPS: Group[] = [
       { path: 'finance.debtShare', label: u('Частка боргу', 'Debt share'), unit: pctU, kind: 'percent', source: 'Рішення 03.11.2026', min: 0, max: 0.9, decimals: 0 },
       { path: 'finance.rate', label: u('Ставка кредиту, EUR', 'Loan rate, EUR'), unit: u('%/рік', '%/yr'), kind: 'percent', source: 'Рішення 03.11.2026', min: 0, max: 0.2, decimals: 2 },
       { path: 'finance.tenorYears', label: u('Строк погашення після введення', 'Repayment after COD'), unit: u('років', 'years'), kind: 'number', source: 'Рішення 03.11.2026', min: 1, max: 20 },
+      { path: 'finance.dividendEveryMonths', label: u('Дивіденди: кожні N місяців (12 = щогрудня)', 'Dividends every N months (12 = each December)'), unit: u('міс.', 'months'), kind: 'number', source: 'Рішення 03.11.2026: щокварталу, у дати платежів за кредитом', min: 1, max: 12 },
       { path: 'finance.feePct', label: u('Комісія (у тілі кредиту)', 'Arrangement fee (capitalised)'), unit: u('% кредиту', '% of loan'), kind: 'percent', source: 'Рішення 03.11.2026', min: 0, max: 0.03, decimals: 2 },
       { path: 'finance.costOfEquity', label: u('Вартість капіталу', 'Cost of equity'), unit: pctU, kind: 'percent', source: 'Рішення 03.11.2026', min: 0, max: 0.3, decimals: 1 },
       { path: 'finance.taxRate', label: u('Податок на прибуток', 'Corporate income tax'), unit: pctU, kind: 'percent', source: 'Input!K49', min: 0, max: 0.4, decimals: 0 },

@@ -107,6 +107,8 @@ export interface Assumptions {
     tenorYears: number;
     feePct: number;
     repayEveryMonths: number;
+    /** dividends: every N months after COD on the debt service dates (3 = quarterly); 12 = each December */
+    dividendEveryMonths: number;
     costOfEquity: number;
     taxRate: number;
     depreciationYears: number;
