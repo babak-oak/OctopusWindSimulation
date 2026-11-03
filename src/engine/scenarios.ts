@@ -1,5 +1,5 @@
 import type { Assumptions, Kpis, MarketData } from './types';
-import { run } from './model';
+import { netAEP, run } from './model';
 
 const clone = (a: Assumptions): Assumptions => structuredClone(a);
 
@@ -93,12 +93,12 @@ export function riskRegister(a: Assumptions, md: MarketData): RiskRow[] {
     { id: 'turbines', group: 'construction', nameUk: 'Затримка поставки або монтажу турбін', nameEn: 'Turbine delivery or installation delay', shock: '3 міс.', probability: 0.3, impact: 3 * perMonth },
     { id: 'land', group: 'construction', nameUk: 'Земля, суперфіцій, громада', nameEn: 'Land, superficies, community', shock: '6 міс.', probability: 0.15, impact: 6 * perMonth },
     { id: 'price', group: 'operations', nameUk: 'Ціна РДН', nameEn: 'DAM price', shock: '−15%', probability: 0.25, impact: shocked((b) => (b.stress.priceMult *= 0.85)) },
-    { id: 'wind', group: 'operations', nameUk: 'Вітер нижче P50', nameEn: 'Wind below P50', shock: '−7% генерації', probability: 0.3, impact: shocked((b) => (b.generation.netAEP_MWh *= 0.93)) },
+    { id: 'wind', group: 'operations', nameUk: 'Вітер нижче P50', nameEn: 'Wind below P50', shock: '−7% генерації', probability: 0.3, impact: shocked((b) => (b.generation.manualAEP = netAEP(b) * 0.93)) },
     { id: 'failure', group: 'operations', nameUk: 'Велика аварія', nameEn: 'Major failure', shock: '1 ВЕУ, 4 міс. + ремонт 0.8 млн €', probability: 0.1, impact: (ebitda / a.project.turbines) * (4 / 12) + 800_000 },
     { id: 'opex', group: 'operations', nameUk: 'OPEX', nameEn: 'OPEX', shock: '+20%', probability: 0.5, impact: shocked((b) => (b.stress.opexMult *= 1.2)) },
     { id: 'regulation', group: 'operations', nameUk: 'Регуляторні зміни', nameEn: 'Regulatory change', shock: '−3% доходу', probability: 0.3, impact: shocked((b) => (b.stress.priceMult *= 0.97)) },
-    { id: 'curtail', group: 'operations', nameUk: 'Обмеження Укренерго', nameEn: 'Ukrenergo curtailment', shock: '−2% генерації', probability: 0.5, impact: shocked((b) => (b.generation.netAEP_MWh *= 0.98)) },
-    { id: 'eco', group: 'operations', nameUk: 'Екологічні обмеження', nameEn: 'Environmental limits', shock: '−1.5% генерації', probability: 0.4, impact: shocked((b) => (b.generation.netAEP_MWh *= 0.985)) },
+    { id: 'curtail', group: 'operations', nameUk: 'Обмеження Укренерго', nameEn: 'Ukrenergo curtailment', shock: '−2% генерації', probability: 0.5, impact: shocked((b) => (b.generation.manualAEP = netAEP(b) * 0.98)) },
+    { id: 'eco', group: 'operations', nameUk: 'Екологічні обмеження', nameEn: 'Environmental limits', shock: '−1.5% генерації', probability: 0.4, impact: shocked((b) => (b.generation.manualAEP = netAEP(b) * 0.985)) },
   ];
   return rows.map((r) => ({ ...r, expected: r.probability * r.impact }));
 }

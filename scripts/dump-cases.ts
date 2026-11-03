@@ -10,8 +10,11 @@ const base = defaultAssumptions();
 const grant = defaultAssumptions(); grant.compensation.enabled = true;
 const half = defaultAssumptions(); half.project.turbines = 8;
 const manual = structuredClone(half); manual.capex.items.find((i) => i.id === 'roads')!.manualQty = 14;
+manual.generation.manualAEP = 150_000; manual.project.manualGridMW = 45; manual.opex.manualLandHa = 3.5;
+manual.opex.staffRoles.find((r) => r.id === 'security')!.manualCount = 5;
+const rating = defaultAssumptions(); rating.project.turbineMW = 7; rating.project.turbines = 15;
 const cases: Record<string, ReturnType<typeof defaultAssumptions>> = {
-  half, manual,
+  half, manual, rating,
   base, grant, S1: applyScenario(base, 'S1'), S2: applyScenario(base, 'S2'), S3: applyScenario(base, 'S3'), S4: applyScenario(base, 'S4'),
 };
 for (const [k, a] of Object.entries(cases)) {

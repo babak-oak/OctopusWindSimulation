@@ -25,13 +25,27 @@ export interface CapexItem {
   source: string;
 }
 
+export interface StaffRole {
+  id: string;
+  nameUk: string;
+  nameEn: string;
+  /** net monthly salary per person, EUR */
+  netMonthly: number;
+  /** headcount: `count` people, or `count` per every started block of `per` turbines */
+  count: number;
+  per?: number;
+  manualCount?: number;
+}
+
 export interface Assumptions {
   project: {
     name: string;
     turbines: number;
     turbineMW: number;
-    /** project (grid connection) capacity, MW */
+    /** project (grid connection) capacity at the reference layout, MW; scales with installed MW */
     gridMW: number;
+    /** user override of the grid capacity, MW */
+    manualGridMW?: number;
     /** layout the scalable quantities (roads, cables, substation) were estimated for */
     reference: { turbines: number; turbineMW: number };
     /** first day of construction month 1, ISO yyyy-mm-dd */
@@ -40,7 +54,10 @@ export interface Assumptions {
     lifeYears: number;
   };
   generation: {
+    /** Net AEP at the reference layout; scales with installed MW (same capacity factor) */
     netAEP_MWh: number;
+    /** user override of Net AEP, MWh/yr */
+    manualAEP?: number;
     /** true if Net AEP already includes availability and technical losses */
     aepIncludesLosses: boolean;
     availability: number;
@@ -55,10 +72,14 @@ export interface Assumptions {
   };
   opex: {
     omPerMW: number;
-    staff: number;
+    staffRoles: StaffRole[];
+    /** payroll: net salary / (1 − PIT − military levy) × (1 + ESV) */
+    payroll: { pit: number; military: number; esv: number };
     insurancePctCapex: number;
     rentPerHa: number;
+    /** land at the reference layout; scales with the turbine count */
     landHa: number;
+    manualLandHa?: number;
     dispatchUAHperMWh: number;
     marketOpVarUAHperMWh: number;
     marketOpFixUAHperMonth: number;

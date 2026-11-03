@@ -1,7 +1,8 @@
 import type { Assumptions } from '../engine/types';
+import { gridMW, landHa, netAEP } from '../engine/model';
 import type { T } from './i18n';
 
-export type Kind = 'number' | 'percent' | 'bool' | 'month' | 'date';
+export type Kind = 'number' | 'percent' | 'bool' | 'month' | 'date' | 'staff';
 export interface Field {
   path: string;
   label: T;
@@ -13,6 +14,8 @@ export interface Field {
   step?: number;
   decimals?: number;
   note?: T;
+  /** reference value at `path`, effective value scales with the layout unless overridden at `manual` */
+  scaled?: { manual: string; eff: (a: Assumptions) => number; basis: 'turbines' | 'installedMW' };
 }
 export interface Group {
   id: string;
@@ -28,14 +31,14 @@ export const GROUPS: Group[] = [
     id: 'project', title: u('Проєкт', 'Project'), fields: [
       { path: 'project.turbines', label: u('Кількість ВЕУ', 'Turbines'), unit: u('шт.', 'pcs'), kind: 'number', source: 'Input!K26', min: 1, max: 100 },
       { path: 'project.turbineMW', label: u('Потужність ВЕУ', 'Turbine rating'), unit: u('МВт', 'MW'), kind: 'number', source: 'Input!K24', min: 2, max: 10, decimals: 2 },
-      { path: 'project.gridMW', label: u('Проєктна потужність (приєднання)', 'Project (grid) capacity'), unit: u('МВт', 'MW'), kind: 'number', source: 'Пропозиція SANY, C16', min: 1, max: 1000, decimals: 1 },
+      { path: 'project.gridMW', label: u('Проєктна потужність (приєднання)', 'Project (grid) capacity'), unit: u('МВт', 'MW'), kind: 'number', source: 'Пропозиція SANY, C16: 72 МВт при 75 МВт встановлених', min: 1, max: 1000, decimals: 1, scaled: { manual: 'project.manualGridMW', eff: gridMW, basis: 'installedMW' } },
       { path: 'project.startDate', label: u('Початок будівництва', 'Construction start'), unit: u('місяць 1', 'month 1'), kind: 'date', source: 'Рішення 03.11.2026' },
       { path: 'project.lifeYears', label: u('Строк експлуатації', 'Operating life'), unit: u('років', 'years'), kind: 'number', source: 'Рішення 03.11.2026', min: 10, max: 35 },
     ],
   },
   {
     id: 'generation', title: u('Генерація', 'Generation'), fields: [
-      { path: 'generation.netAEP_MWh', label: u('Net AEP P50', 'Net AEP P50'), unit: u('МВт·год/рік', 'MWh/yr'), kind: 'number', source: 'Пропозиція SANY, C20–C22: Gross 253.5 ГВт·год − затінення 5.5%', min: 1, note: { uk: '', en: '' } },
+      { path: 'generation.netAEP_MWh', label: u('Net AEP P50', 'Net AEP P50'), unit: u('МВт·год/рік', 'MWh/yr'), kind: 'number', source: 'Пропозиція SANY, C20–C22: Gross 253.5 ГВт·год − затінення 5.5%', min: 1, scaled: { manual: 'generation.manualAEP', eff: netAEP, basis: 'installedMW' } },
       { path: 'generation.aepIncludesLosses', label: u('Net AEP містить доступність і техвтрати', 'Net AEP includes availability and losses'), unit: u('так / ні', 'yes / no'), kind: 'bool', source: 'Презентація, слайд 14; рішення 03.11' },
       { path: 'generation.availability', label: u('Доступність', 'Availability'), unit: pctU, kind: 'percent', source: 'Рішення 03.11.2026', min: 0.85, max: 1, decimals: 1 },
       { path: 'generation.techLosses', label: u('Технологічні втрати', 'Technical losses'), unit: pctU, kind: 'percent', source: 'Input!K25', min: 0, max: 0.1, decimals: 1 },
@@ -52,10 +55,10 @@ export const GROUPS: Group[] = [
   {
     id: 'opex', title: u('OPEX, ціни 2026 р.', 'OPEX, 2026 prices'), fields: [
       { path: 'opex.omPerMW', label: u('Ремонт і сервіс', 'O&M'), unit: u('€/МВт/рік', 'EUR/MW/yr'), kind: 'number', source: 'Input!K38', min: 0, max: 80000 },
-      { path: 'opex.staff', label: u('Персонал', 'Staff'), unit: u('€/рік', 'EUR/yr'), kind: 'number', source: 'Staff!J7:J12 × 12, без трейдерів', min: 0 },
+      { path: 'opex.staffRoles', label: u('Персонал', 'Staff'), unit: u('осіб', 'people'), kind: 'staff', source: 'Staff!C7:E12, без трейдерів; чисельність частини посад росте сходинками з кількістю ВЕУ' },
       { path: 'opex.insurancePctCapex', label: u('Страхування', 'Insurance'), unit: u('% CAPEX', '% of CAPEX'), kind: 'percent', source: 'Input!K37', min: 0, max: 0.01, decimals: 2 },
       { path: 'opex.rentPerHa', label: u('Оренда землі', 'Land lease'), unit: u('€/га/рік', 'EUR/ha/yr'), kind: 'number', source: 'Input!K36', min: 0 },
-      { path: 'opex.landHa', label: u('Площа землі', 'Land area'), unit: u('га', 'ha'), kind: 'number', source: 'Input!K17', min: 0, decimals: 1 },
+      { path: 'opex.landHa', label: u('Площа землі', 'Land area'), unit: u('га', 'ha'), kind: 'number', source: 'Input!K17: 6 га на 12 ВЕУ', min: 0, decimals: 2, scaled: { manual: 'opex.manualLandHa', eff: landHa, basis: 'turbines' } },
       { path: 'opex.dispatchUAHperMWh', label: u('Диспетчеризація Укренерго', 'Ukrenergo dispatch'), unit: u('грн/МВт·год', 'UAH/MWh'), kind: 'number', source: 'НКРЕКП, з 01.07.2026', min: 0, decimals: 2 },
       { path: 'opex.marketOpVarUAHperMWh', label: u('Оператор ринку, змінна', 'Market operator, variable'), unit: u('грн/МВт·год', 'UAH/MWh'), kind: 'number', source: 'НКРЕКП № 2167 від 19.12.2025', min: 0, decimals: 2 },
       { path: 'opex.marketOpFixUAHperMonth', label: u('Оператор ринку, постійна', 'Market operator, fixed'), unit: u('грн/міс.', 'UAH/month'), kind: 'number', source: 'НКРЕКП № 2167 від 19.12.2025', min: 0, decimals: 2 },

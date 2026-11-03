@@ -26,7 +26,58 @@
  },
  "opex": {
   "omPerMW": 20000,
-  "staff": 230057,
+  "staffRoles": [
+   {
+    "id": "chief",
+    "nameUk": "Головний енергетик",
+    "nameEn": "Chief power engineer",
+    "netMonthly": 1500,
+    "count": 1
+   },
+   {
+    "id": "engineers",
+    "nameUk": "Інженери-електрики",
+    "nameEn": "Electrical engineers",
+    "netMonthly": 1000,
+    "count": 1,
+    "per": 6
+   },
+   {
+    "id": "admin",
+    "nameUk": "Адміністративний персонал",
+    "nameEn": "Administration",
+    "netMonthly": 1000,
+    "count": 4
+   },
+   {
+    "id": "security",
+    "nameUk": "Охорона",
+    "nameEn": "Security",
+    "netMonthly": 400,
+    "count": 1,
+    "per": 4
+   },
+   {
+    "id": "forecaster",
+    "nameUk": "Прогнозист генерації",
+    "nameEn": "Generation forecaster",
+    "netMonthly": 1000,
+    "count": 1
+   },
+   {
+    "id": "operators",
+    "nameUk": "Оператори системи управління",
+    "nameEn": "Control room operators",
+    "netMonthly": 600,
+    "count": 4,
+    "per": 24
+   }
+  ],
+  "payroll": {
+   "pit": 0.18,
+   "military": 0.05,
+   "esv": 0.22
+  },
   "insurancePctCapex": 0.0012,
   "rentPerHa": 1500,
   "landHa": 6,
@@ -73,13 +124,13 @@
     "id": "foundations",
     "nameUk": "Фундаменти",
     "nameEn": "Foundations",
-    "qty": 72000,
-    "qtyBasis": "gridKW",
-    "rate": 100,
+    "scale": "turbines",
+    "qty": 12,
+    "rate": 600000,
     "currency": "EUR",
     "vat": true,
     "schedule": "works",
-    "source": "просчет Сани для Степана_1.xlsx!E2: 100 €/kW × 72 MW"
+    "source": "просчет Сани для Степана_1.xlsx!E2: 7.2 M€ for 12 turbines = 600 k€ each"
    },
    {
     "id": "roads",

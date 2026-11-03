@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultAssumptions } from '../src/engine/defaults';
 import { marketData } from '../src/engine/data';
-import { annualGeneration, itemQty, run, scheduleWeights } from '../src/engine/model';
+import { annualGeneration, gridMW, itemQty, landHa, netAEP, run, scheduleWeights, staffAnnualCost, staffCount } from '../src/engine/model';
 import { xirr, xnpv } from '../src/engine/finance';
 import { applyScenario, heatmap, riskRegister, scenarioTable, waterfall } from '../src/engine/scenarios';
 
@@ -154,6 +154,7 @@ describe('scaling with the turbine count', () => {
   });
   it('fixed items do not scale', () => {
     expect(q(half, 'cableSub')).toBe(1);
+    expect(q(half, 'scada')).toBe(1);
     expect(q(half, 'relay')).toBe(1);
   });
   it('a manual quantity overrides scaling', () => {
@@ -163,5 +164,53 @@ describe('scaling with the turbine count', () => {
   });
   it('reference layout gives the reference quantities', () => {
     expect(q(a, 'roads')).toBe(16.37);
+  });
+});
+
+describe('capacity-driven assumptions (decision 03.11)', () => {
+  const n8 = defaultAssumptions();
+  n8.project.turbines = 8;
+  it('Net AEP and grid capacity scale with installed MW', () => {
+    expect(netAEP(n8)).toBeCloseTo(239_600 * 8 / 12, 6);
+    expect(gridMW(n8)).toBeCloseTo(72 * 8 / 12, 9);
+    const r7 = defaultAssumptions();
+    r7.project.turbineMW = 7;
+    expect(netAEP(r7)).toBeCloseTo(239_600 * 7 / 6.25, 6);
+  });
+  it('per-kW items follow the scaled grid capacity; foundations are per turbine', () => {
+    const q = (id: string) => itemQty(n8, n8.capex.items.find((i) => i.id === id)!);
+    expect(q('grid')).toBeCloseTo(48_000, 6);
+    expect(q('site')).toBeCloseTo(48_000, 6);
+    expect(q('dev')).toBeCloseTo(48_000, 6);
+    expect(q('foundations')).toBeCloseTo(8, 9);
+  });
+  it('land scales with turbines', () => {
+    expect(landHa(n8)).toBeCloseTo(4, 9);
+  });
+  it('manual overrides win', () => {
+    const m = structuredClone(n8);
+    m.generation.manualAEP = 200_000;
+    m.project.manualGridMW = 50;
+    m.opex.manualLandHa = 5;
+    expect(netAEP(m)).toBe(200_000);
+    expect(gridMW(m)).toBe(50);
+    expect(landHa(m)).toBe(5);
+  });
+  it('staff: 15 people and 230,057 €/yr at 12 turbines, sub-proportional elsewhere', () => {
+    const base = defaultAssumptions();
+    const heads = (x: typeof base) => x.opex.staffRoles.reduce((s, r) => s + staffCount(x, r), 0);
+    expect(heads(base)).toBe(15);
+    expect(staffAnnualCost(base)).toBeCloseTo(230_057.14, 1);
+    expect(heads(n8)).toBe(14);
+    const n24 = defaultAssumptions();
+    n24.project.turbines = 24;
+    expect(heads(n24)).toBe(20);
+    expect(staffAnnualCost(n24) / staffAnnualCost(base)).toBeLessThan(2);
+    expect(staffAnnualCost(n8) / staffAnnualCost(base)).toBeGreaterThan(8 / 12);
+  });
+  it('fewer turbines no longer inflate returns', () => {
+    const k8 = run(n8, marketData).kpis;
+    expect(k8.annualGeneration).toBeCloseTo(r.kpis.annualGeneration * 8 / 12, 3);
+    expect(Math.abs(k8.equityIrr - r.kpis.equityIrr)).toBeLessThan(0.03);
   });
 });

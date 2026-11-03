@@ -52,14 +52,16 @@ rows = [
     ('Проєкт',),
     ('i_turbines', 'Кількість ВЕУ', p['turbines'], 'шт.', 'Input!K26'),
     ('i_turbineMW', 'Потужність ВЕУ', p['turbineMW'], 'МВт', 'Input!K24'),
-    ('i_gridMW', 'Проєктна потужність (приєднання)', p['gridMW'], 'МВт', 'Пропозиція SANY, C16'),
+    ('i_gridMW', 'Проєктна потужність при еталонному компонуванні', p['gridMW'], 'МВт', 'Пропозиція SANY, C16; масштабується з встановленою потужністю'),
+    ('i_gridMan', 'Проєктна потужність вручну (порожньо = авто)', p.get('manualGridMW'), 'МВт', 'Перевизначення користувача'),
     ('i_refT', 'Еталонне компонування: кількість ВЕУ', p['reference']['turbines'], 'шт.', 'Для масштабування доріг, кабелів, підстанції'),
     ('i_refMW', 'Еталонне компонування: потужність ВЕУ', p['reference']['turbineMW'], 'МВт', 'Для масштабування підстанції'),
     ('i_start', 'Початок будівництва (місяць 1)', '2027-03-01', 'дата', 'Рішення 03.11.2026'),
     ('i_C', 'Тривалість будівництва', p['constructionMonths'], 'міс.', 'Рішення 03.11.2026'),
     ('i_life', 'Строк експлуатації', p['lifeYears'], 'років', 'Рішення 03.11.2026'),
     ('Генерація',),
-    ('i_aep', 'Net AEP P50 (лише затінення 5.5%)', g['netAEP_MWh'], 'МВт·год/рік', 'Пропозиція SANY: просчет Сани для Степана_1.xlsx, C20–C22 (Gross 253.5 ГВт·год, затінення 5.5%)'),
+    ('i_aep', 'Net AEP P50 при еталонному компонуванні (лише затінення 5.5%)', g['netAEP_MWh'], 'МВт·год/рік', 'Пропозиція SANY: просчет Сани для Степана_1.xlsx, C20–C22; масштабується з встановленою потужністю'),
+    ('i_aepMan', 'Net AEP вручну (порожньо = авто)', g.get('manualAEP'), 'МВт·год/рік', 'Перевизначення користувача'),
     ('i_aepIncl', 'Net AEP містить доступність і техвтрати (1 = так)', 1 if g['aepIncludesLosses'] else 0, '0/1', 'Рішення 03.11.2026'),
     ('i_avail', 'Доступність', g['availability'], '%', 'Рішення 03.11.2026'),
     ('i_loss', 'Технологічні втрати', g['techLosses'], '%', 'Input!K25'),
@@ -70,10 +72,13 @@ rows = [
     ('i_imb', 'Небаланси окремо', m['imbalance'], '% доходу', 'Рішення 03.11: входять у комісію'),
     ('OPEX (ціни 2026 р.)',),
     ('i_om', 'Ремонт і сервіс', o['omPerMW'], '€/МВт/рік', 'Input!K38'),
-    ('i_staff', 'Персонал (15 осіб без трейдерів)', o['staff'], '€/рік', 'Staff!J7:J12 × 12'),
+    ('i_pit', 'ПДФО', o['payroll']['pit'], '%', 'ПКУ'),
+    ('i_mil', 'Військовий збір', o['payroll']['military'], '%', 'ПКУ'),
+    ('i_esv', 'ЄСВ', o['payroll']['esv'], '%', 'Закон про ЄСВ'),
     ('i_ins', 'Страхування', o['insurancePctCapex'], '% CAPEX', 'Input!K37'),
     ('i_rent', 'Оренда землі', o['rentPerHa'], '€/га/рік', 'Input!K36'),
-    ('i_ha', 'Площа землі', o['landHa'], 'га', 'Input!K17'),
+    ('i_ha', 'Площа землі при еталонному компонуванні', o['landHa'], 'га', 'Input!K17; масштабується з кількістю ВЕУ'),
+    ('i_haMan', 'Площа землі вручну (порожньо = авто)', o.get('manualLandHa'), 'га', 'Перевизначення користувача'),
     ('i_disp', 'Диспетчеризація Укренерго', o['dispatchUAHperMWh'], 'грн/МВт·год', 'НКРЕКП, з 01.07.2026'),
     ('i_moVar', 'Оператор ринку, змінна', o['marketOpVarUAHperMWh'], 'грн/МВт·год', 'НКРЕКП № 2167 від 19.12.2025'),
     ('i_moFix', 'Оператор ринку, постійна', o['marketOpFixUAHperMonth'], 'грн/міс.', 'НКРЕКП № 2167 від 19.12.2025'),
@@ -122,7 +127,7 @@ rows = [
     ('i_opexMult', 'Множник OPEX', st['opexMult'], '×', 'Реєстр ризиків'),
 ]
 r = 5
-pct_names = {'i_avail', 'i_loss', 'i_priceIdx', 'i_trader', 'i_imb', 'i_ins', 'i_nkrekp', 'i_other', 'i_idx', 'i_cont', 'i_tp1', 'i_tp2', 'i_port', 'i_wPct', 'i_dShare', 'i_rate', 'i_feePct', 'i_ke', 'i_tax', 'i_vat', 'i_gPct', 'i_cCut'}
+pct_names = {'i_pit', 'i_mil', 'i_esv', 'i_avail', 'i_loss', 'i_priceIdx', 'i_trader', 'i_imb', 'i_ins', 'i_nkrekp', 'i_other', 'i_idx', 'i_cont', 'i_tp1', 'i_tp2', 'i_port', 'i_wPct', 'i_dShare', 'i_rate', 'i_feePct', 'i_ke', 'i_tax', 'i_vat', 'i_gPct', 'i_cCut'}
 key_names = {'i_aep', 'i_price', 'i_dShare', 'i_rate'}
 for row in rows:
     if len(row) == 1:
@@ -153,7 +158,13 @@ derived = [
     ('d_kw', 'Потужність', '=i_turbines*i_turbineMW*1000', 'кВт', NUM),
     ('d_L', 'Місяців експлуатації', '=i_life*12', 'міс.', NUM),
     ('d_T', 'Місяців у моделі', '=i_C+d_L', 'міс.', NUM),
-    ('d_E', 'Річна генерація', '=IF(i_aepIncl=1,i_aep,i_aep*i_avail*(1-i_loss))', 'МВт·год/рік', NUM),
+    ('d_mwF', 'Масштаб: встановлена потужність / еталон', '=d_kw/(i_refT*i_refMW*1000)', '×', '0.0000'),
+    ('d_tF', 'Масштаб: кількість ВЕУ / еталон', '=i_turbines/i_refT', '×', '0.0000'),
+    ('d_aep', 'Net AEP у розрахунку', '=IF(ISBLANK(i_aepMan),i_aep*d_mwF,i_aepMan)', 'МВт·год/рік', NUM),
+    ('d_grid', 'Проєктна потужність у розрахунку', '=IF(ISBLANK(i_gridMan),i_gridMW*d_mwF,i_gridMan)', 'МВт', NUM2),
+    ('d_ha', 'Площа землі у розрахунку', '=IF(ISBLANK(i_haMan),i_ha*d_tF,i_haMan)', 'га', NUM2),
+    ('d_staff', 'Персонал, € на рік', '=SUM(Staff!H3:H20)', '€/рік', NUM),
+    ('d_E', 'Річна генерація', '=IF(i_aepIncl=1,d_aep,d_aep*i_avail*(1-i_loss))', 'МВт·год/рік', NUM),
     ('d_P', 'Ціна з урахуванням стресу', '=i_price*i_priceMult', '€/МВт·год', NUM2),
     ('d_nRep', 'Кількість платежів тіла', '=i_tenor*12/i_every', 'шт.', NUM),
     ('d_wacc', 'WACC після податків', '=(1-i_dShare)*i_ke+i_dShare*i_rate*(1-i_tax)', '%', PCT2),
@@ -172,6 +183,21 @@ wi.column_dimensions['B'].width = 52
 wi.column_dimensions['C'].width = 16
 wi.column_dimensions['D'].width = 14
 wi.column_dimensions['E'].width = 58
+
+# ---------------- Staff ----------------
+wsf = wb.create_sheet('Staff')
+header(wsf, 2, ['ID', 'Посада', 'Чиста ЗП, €/міс.', 'Осіб', 'На кожні N ВЕУ (порожньо = фіксовано)', 'Вручну, осіб', 'Чисельність', 'Витрати, €/рік'])
+wsf['A1'] = 'Персонал: чисельність = осіб × ROUNDUP(ВЕУ / N), або фіксована; вартість = чиста ЗП / (1 − ПДФО − ВЗ) × (1 + ЄСВ)'
+wsf['A1'].font = f_bold
+for j, role in enumerate(o['staffRoles']):
+    rr = 3 + j
+    for c, v in enumerate([role['id'], role['nameUk'], role['netMonthly'], role['count'], role.get('per'), role.get('manualCount')], 1):
+        cell = wsf.cell(row=rr, column=c, value=v)
+        cell.font = f_in if c >= 3 else f_norm
+    wsf.cell(row=rr, column=7, value=f'=IF(ISBLANK(F{rr}),IF(ISBLANK(E{rr}),D{rr},D{rr}*ROUNDUP(i_turbines/E{rr},0)),F{rr})').number_format = '0'
+    wsf.cell(row=rr, column=8, value=f'=G{rr}*C{rr}/(1-i_pit-i_mil)*(1+i_esv)*12').number_format = NUM
+wsf.column_dimensions['B'].width = 34
+wsf.column_dimensions['E'].width = 22
 
 # ---------------- Profiles ----------------
 wp = wb.create_sheet('Profiles')
@@ -235,7 +261,7 @@ for j, it in enumerate(items):
     if basis == 'installedKW':
         qty = '=d_kw'
     elif basis == 'gridKW':
-        qty = '=i_gridMW*1000'
+        qty = '=d_grid*1000'
     elif it.get('manualQty') is not None:
         qty = it['manualQty']
     elif sc == 'turbines':
@@ -403,7 +429,7 @@ add('idxO', 'Індекс OPEX', lambda c, p, k: f'=(1+i_idx)^({c}{R["year"]}-i_
 add('gen', 'Генерація, МВт·год', lambda c, p, k: f'={c}{R["ops"]}*d_E*INDEX(p_gen,{c}{R["mon"]})')
 add('revG', 'Дохід валовий', lambda c, p, k: f'={c}{R["ops"]}*d_E*d_P*INDEX(p_rev,{c}{R["mon"]})*(1+i_priceIdx)^({c}{R["year"]}-i_baseYear)')
 add('revN', 'Чистий дохід', lambda c, p, k: f'={c}{R["revG"]}*(1-i_trader-i_imb)')
-add('opex', 'OPEX', lambda c, p, k: (f'={c}{R["ops"]}*i_opexMult*((i_om*d_kw/1000+i_staff+i_ins*c_total+i_rent*i_ha+i_admin*12+i_moFix*12/i_fx)/12*{c}{R["idxO"]}'
+add('opex', 'OPEX', lambda c, p, k: (f'={c}{R["ops"]}*i_opexMult*((i_om*d_kw/1000+d_staff+i_ins*c_total+i_rent*d_ha+i_admin*12+i_moFix*12/i_fx)/12*{c}{R["idxO"]}'
                                        f'+(i_disp+i_moVar)/i_fx*{c}{R["gen"]}*{c}{R["idxO"]}+(i_nkrekp+i_other)*{c}{R["revG"]})'))
 add('ebitda', 'EBITDA', lambda c, p, k: f'={c}{R["revN"]}-{c}{R["opex"]}', NUM, True)
 add('dep', 'Амортизація', lambda c, p, k: f'={c}{R["ops"]}*k_ppe/(i_dep*12)')

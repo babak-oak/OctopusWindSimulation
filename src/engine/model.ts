@@ -8,10 +8,40 @@ export function capacityKW(a: Assumptions): number {
   return a.project.turbines * a.project.turbineMW * 1000;
 }
 
+const refMW = (a: Assumptions) => a.project.reference.turbines * a.project.reference.turbineMW;
+const mwFactor = (a: Assumptions) => capacityKW(a) / 1000 / refMW(a);
+const turbineFactor = (a: Assumptions) => a.project.turbines / a.project.reference.turbines;
+
+/** Net AEP: manual value, or the reference AEP scaled with installed MW (same capacity factor). */
+export function netAEP(a: Assumptions): number {
+  return a.generation.manualAEP ?? a.generation.netAEP_MWh * mwFactor(a);
+}
+/** Grid (project) capacity, MW: manual value, or the reference scaled with installed MW. */
+export function gridMW(a: Assumptions): number {
+  return a.project.manualGridMW ?? a.project.gridMW * mwFactor(a);
+}
+/** Land, ha: manual value, or the reference scaled with the turbine count. */
+export function landHa(a: Assumptions): number {
+  return a.opex.manualLandHa ?? a.opex.landHa * turbineFactor(a);
+}
+export function staffCount(a: Assumptions, r: { count: number; per?: number; manualCount?: number }): number {
+  if (r.manualCount !== undefined) return r.manualCount;
+  return r.per ? r.count * Math.ceil(a.project.turbines / r.per) : r.count;
+}
+/** Employer cost per person a month: net / (1 − PIT − military levy) × (1 + ESV). */
+export function staffMonthlyCost(a: Assumptions, netMonthly: number): number {
+  const p = a.opex.payroll;
+  return (netMonthly / (1 - p.pit - p.military)) * (1 + p.esv);
+}
+export function staffAnnualCost(a: Assumptions): number {
+  return a.opex.staffRoles.reduce((s, r) => s + staffCount(a, r) * staffMonthlyCost(a, r.netMonthly) * 12, 0);
+}
+
 /** Annual net generation, MWh (ТЗ 5.1). */
 export function annualGeneration(a: Assumptions): number {
   const g = a.generation;
-  return g.aepIncludesLosses ? g.netAEP_MWh : g.netAEP_MWh * g.availability * (1 - g.techLosses);
+  const aep = netAEP(a);
+  return g.aepIncludesLosses ? aep : aep * g.availability * (1 - g.techLosses);
 }
 
 /** Item amount in EUR ex VAT, before contingency and stress multiplier. */
@@ -28,7 +58,7 @@ export function scaleFactor(a: Assumptions, i: { scale?: string }): number {
 /** Quantity used in the calculation: per-kW basis, a manual override, or the reference quantity scaled. */
 export function itemQty(a: Assumptions, i: QtyItem): number {
   if (i.qtyBasis === 'installedKW') return capacityKW(a);
-  if (i.qtyBasis === 'gridKW') return a.project.gridMW * 1000;
+  if (i.qtyBasis === 'gridKW') return gridMW(a) * 1000;
   if (i.manualQty !== undefined) return i.manualQty;
   return i.qty * scaleFactor(a, i);
 }
@@ -124,6 +154,8 @@ export function run(a: Assumptions, md: MarketData): Result {
 
   // ---------- Timeline ----------
   const E = annualGeneration(a);
+  const staffCost = staffAnnualCost(a);
+  const land = landHa(a);
   const price = a.market.basePrice * a.stress.priceMult;
   const cur = a.stress.curtailment;
   const fl: Flows = {
@@ -172,7 +204,7 @@ export function run(a: Assumptions, md: MarketData): Result {
       rev *= pIdx;
       const idx = Math.pow(1 + a.opex.indexation, year - a.opex.baseYear);
       const op = a.opex;
-      const fixedAnnual = op.omPerMW * (kw / 1000) + op.staff + op.insurancePctCapex * capexTotal + op.rentPerHa * op.landHa
+      const fixedAnnual = op.omPerMW * (kw / 1000) + staffCost + op.insurancePctCapex * capexTotal + op.rentPerHa * land
         + op.adminPerMonth * 12 + (op.marketOpFixUAHperMonth * 12) / fx;
       const opex = a.stress.opexMult * ((fixedAnnual / 12) * idx + ((op.dispatchUAHperMWh + op.marketOpVarUAHperMWh) / fx) * gen * idx
         + (op.nkrekpPctRevenue + op.otherPctRevenue) * rev);

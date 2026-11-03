@@ -22,7 +22,16 @@ export function defaultAssumptions(): Assumptions {
     market: { basePrice: 87.59, priceIndexation: 0, traderFee: 0.08, imbalance: 0 },
     opex: {
       omPerMW: 20_000,
-      staff: 230_057,
+      // Staff!C7:E12 of the source model, traders removed; 15 people at 12 turbines
+      staffRoles: [
+        { id: 'chief', nameUk: 'Головний енергетик', nameEn: 'Chief power engineer', netMonthly: 1_500, count: 1 },
+        { id: 'engineers', nameUk: 'Інженери-електрики', nameEn: 'Electrical engineers', netMonthly: 1_000, count: 1, per: 6 },
+        { id: 'admin', nameUk: 'Адміністративний персонал', nameEn: 'Administration', netMonthly: 1_000, count: 4 },
+        { id: 'security', nameUk: 'Охорона', nameEn: 'Security', netMonthly: 400, count: 1, per: 4 },
+        { id: 'forecaster', nameUk: 'Прогнозист генерації', nameEn: 'Generation forecaster', netMonthly: 1_000, count: 1 },
+        { id: 'operators', nameUk: 'Оператори системи управління', nameEn: 'Control room operators', netMonthly: 600, count: 4, per: 24 },
+      ],
+      payroll: { pit: 0.18, military: 0.05, esv: 0.22 },
       insurancePctCapex: 0.0012,
       rentPerHa: 1_500,
       landHa: 6,
@@ -41,7 +50,7 @@ export function defaultAssumptions(): Assumptions {
       items: [
         { id: 'wtg', nameUk: 'ВЕУ з доставкою', nameEn: 'Wind turbines incl. delivery', qty: KW, qtyBasis: 'installedKW', rate: 655, currency: 'EUR', vat: false, schedule: 'turbine', source: 'SANY offer, 655 €/kW delivered' },
         { id: 'montage', nameUk: 'Монтаж ВЕУ', nameEn: 'Turbine installation', qty: KW, qtyBasis: 'installedKW', rate: 80, currency: 'EUR', vat: true, schedule: 'montage', source: 'Input!K67' },
-        { id: 'foundations', nameUk: 'Фундаменти', nameEn: 'Foundations', qty: GRID_KW, qtyBasis: 'gridKW', rate: 100, currency: 'EUR', vat: true, schedule: 'works', source: `${SANY}!E2: 100 €/kW × 72 MW` },
+        { id: 'foundations', nameUk: 'Фундаменти', nameEn: 'Foundations', scale: 'turbines', qty: 12, rate: 600_000, currency: 'EUR', vat: true, schedule: 'works', source: `${SANY}!E2: 7.2 M€ for 12 turbines = 600 k€ each` },
         { id: 'roads', nameUk: 'Дороги', nameEn: 'Roads', scale: 'turbines', qty: 16.37, rate: 16_000_000, currency: 'UAH', vat: true, schedule: 'works', source: 'Decision 03.11.2026' },
         { id: 'cables', nameUk: 'Внутрішні кабелі 35 кВ', nameEn: 'Internal 35 kV cables', scale: 'turbines', qty: 25, rate: 5_000_000, currency: 'UAH', vat: true, schedule: 'works', source: 'Input!K63, M63' },
         { id: 'cableSub', nameUk: 'Кабель до підстанції', nameEn: 'Cable to substation', qty: 1, rate: 8_000_000, currency: 'UAH', vat: true, schedule: 'works', source: 'Input!K64, M64' },

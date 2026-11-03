@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Assumptions } from '../engine/types';
-import { capacityKW, itemQty } from '../engine/model';
+import { capacityKW, itemQty, staffAnnualCost, staffCount } from '../engine/model';
 import { GROUPS, OEM, getPath, setPath, type Field } from './fields';
 import { S, tr, type Lang } from './i18n';
 import { num } from './format';
@@ -41,6 +41,69 @@ function FieldRow({ f, a, d, lang, onChange }: { f: Field } & Props) {
   const label = tr(f.label, lang);
   let control: React.ReactNode;
   let out = false;
+  const ref = a.project.reference;
+  if (f.scaled) {
+    const sc = f.scaled;
+    const manual = getPath(a, sc.manual) as number | undefined;
+    const auto = manual === undefined;
+    const eff = sc.eff(a);
+    const dec = f.decimals ?? 0;
+    const basisTxt = sc.basis === 'turbines'
+      ? (lang === 'uk' ? `∝ кількості ВЕУ; еталон ${ref.turbines} шт.: ${num(Number(v), dec)}` : `∝ turbine count; reference ${ref.turbines}: ${num(Number(v), dec)}`)
+      : (lang === 'uk' ? `∝ встановленій потужності; еталон ${num(ref.turbines * ref.turbineMW, 1)} МВт: ${num(Number(v), dec)}` : `∝ installed MW; reference ${num(ref.turbines * ref.turbineMW, 1)} MW: ${num(Number(v), dec)}`);
+    return (
+      <div className={`field${!auto ? ' changed' : ''}`}>
+        <div className="field-head">
+          <span className="field-label">{label}</span>
+          <button className="icon" onClick={() => setInfo(!info)} aria-label={tr(S.source, lang)} aria-expanded={info}>i</button>
+          {!auto && <button className="icon" onClick={() => onChange(setPath(a, sc.manual, undefined))} title={lang === 'uk' ? 'Повернути автоматичний розрахунок' : 'Back to automatic'} aria-label="auto">↺</button>}
+        </div>
+        <div className="field-ctl">
+          <NumberInput value={eff} decimals={dec} label={label} onCommit={(x) => onChange(setPath(a, sc.manual, x))} />
+          <span className="unit">{tr(f.unit, lang)}</span>
+        </div>
+        <div className="field-src">{auto ? (lang === 'uk' ? 'авто ' : 'auto ') : (lang === 'uk' ? 'вручну ' : 'manual ')}{basisTxt}</div>
+        {info && <div className="field-src">{tr(S.source, lang)}: {f.source}</div>}
+        {f.path === 'generation.netAEP_MWh' && <div className="field-note">{tr(S.aepNote, lang)}</div>}
+      </div>
+    );
+  }
+  if (f.kind === 'staff') {
+    const setRole = (id: string, patch: Record<string, unknown>) =>
+      onChange({ ...a, opex: { ...a.opex, staffRoles: a.opex.staffRoles.map((r) => (r.id === id ? { ...r, ...patch } : r)) } });
+    const total = a.opex.staffRoles.reduce((s2, r) => s2 + staffCount(a, r), 0);
+    return (
+      <div className="field">
+        <div className="field-head">
+          <span className="field-label">{label}: {total} {lang === 'uk' ? 'осіб' : 'people'}, {num(staffAnnualCost(a) / 1000, 0)} {lang === 'uk' ? 'тис. €/рік' : 'EUR k/yr'}</span>
+          <button className="icon" onClick={() => setInfo(!info)} aria-label={tr(S.source, lang)} aria-expanded={info}>i</button>
+        </div>
+        <table className="capex-edit">
+          <thead><tr><th>{lang === 'uk' ? 'Посада' : 'Role'}</th><th className="n">{lang === 'uk' ? 'Осіб' : 'Heads'}</th><th className="n">{lang === 'uk' ? 'ЗП нетто, €/міс.' : 'Net pay, EUR/mo'}</th></tr></thead>
+          <tbody>
+            {a.opex.staffRoles.map((r) => {
+              const auto = r.manualCount === undefined;
+              const rule = r.per
+                ? (lang === 'uk' ? `${r.count} на кожні ${r.per} ВЕУ` : `${r.count} per ${r.per} turbines`)
+                : (lang === 'uk' ? 'фіксовано' : 'fixed');
+              return (
+                <tr key={r.id} className={!auto ? 'changed' : ''}>
+                  <td>{lang === 'uk' ? r.nameUk : r.nameEn}<div className="field-src">{auto ? (lang === 'uk' ? 'авто: ' : 'auto: ') : (lang === 'uk' ? 'вручну; правило: ' : 'manual; rule: ')}{rule}</div></td>
+                  <td className="n"><span className="qty-cell">
+                    <NumberInput value={staffCount(a, r)} decimals={0} label={`${r.nameEn} headcount`} onCommit={(x) => setRole(r.id, { manualCount: x })} />
+                    {!auto && <button className="icon" aria-label="auto" title={lang === 'uk' ? 'Повернути автоматичний розрахунок' : 'Back to automatic'} onClick={() => setRole(r.id, { manualCount: undefined })}>↺</button>}
+                  </span></td>
+                  <td className="n"><NumberInput value={r.netMonthly} decimals={0} label={`${r.nameEn} salary`} onCommit={(x) => setRole(r.id, { netMonthly: x })} /></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        {info && <div className="field-src">{tr(S.source, lang)}: {f.source}</div>}
+        <div className="field-src">{lang === 'uk' ? 'Вартість = нетто / (1 − ПДФО 18% − ВЗ 5%) × (1 + ЄСВ 22%)' : 'Cost = net / (1 − PIT 18% − military levy 5%) × (1 + SSC 22%)'}</div>
+      </div>
+    );
+  }
   if (f.kind === 'bool') {
     control = (
       <label className="switch">
@@ -73,7 +136,6 @@ function FieldRow({ f, a, d, lang, onChange }: { f: Field } & Props) {
       <div className="field-ctl">{control}<span className="unit">{tr(f.unit, lang)}</span></div>
       {out && <div className="field-warn oc-caution">{tr(S.outOfRange, lang)}</div>}
       {info && <div className="field-src">{tr(S.source, lang)}: {f.source}</div>}
-      {f.path === 'generation.netAEP_MWh' && <div className="field-note">{tr(S.aepNote, lang)}</div>}
     </div>
   );
 }
