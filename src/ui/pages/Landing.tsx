@@ -6,6 +6,7 @@ import { TurbineScene } from '../Turbines';
 import { useAuth } from '../auth';
 import { num, pct } from '../format';
 import type { Lang } from '../i18n';
+import { offerMailto } from './Contacts';
 
 const L = (lang: Lang, uk: string, en: string) => (lang === 'uk' ? uk : en);
 
@@ -75,10 +76,21 @@ export function Landing({ lang, theme }: { lang: Lang; theme: 'dark' | 'light' }
       <section className="steps">
         <h2>{L(lang, 'Як це працює', 'How it works')}</h2>
         <ol>
-          <li><b>{L(lang, 'Задайте проєкт.', 'Set up the project.')}</b> {L(lang, 'Почніть з еталонного проєкту і змініть турбіни, ціну, CAPEX чи фінансування. Біля кожного поля — джерело значення.', 'Start from the reference project and change turbines, price, CAPEX or financing. Every field shows its source.')}</li>
+          <li><b>{L(lang, 'Задайте проєкт.', 'Set up the project.')}</b> {L(lang, 'Еталонний проєкт відкритий для перегляду всім. Після реєстрації змінюйте турбіни, ціну, CAPEX чи фінансування; біля кожного поля — джерело значення.', 'The reference project is open to everyone. With an account, change turbines, price, CAPEX or financing; every field shows its source.')}</li>
           <li><b>{L(lang, 'Перевірте сценарії.', 'Test the scenarios.')}</b> {L(lang, 'Порівняйте базу зі стрес-тестами, подивіться водоспад IRR і реєстр ризиків.', 'Compare the base with the stress tests, the IRR waterfall and the risk register.')}</li>
           <li><b>{L(lang, 'Збережіть і поділіться.', 'Save and share.')}</b> {L(lang, 'Проєкти зберігаються в кабінеті автоматично; посилання для перегляду можна відкликати будь-коли.', 'Projects save to your account automatically; view-only links can be revoked at any time.')}</li>
         </ol>
+      </section>
+
+      <section className="offer">
+        <div>
+          <h2>{L(lang, 'Пропозиція на обладнанні SANY', 'An offer on SANY equipment')}</h2>
+          <p className="muted">{L(lang, 'Підготуємо пропозицію на турбіни SANY для вашої ВЕС і розрахунок її економіки.', 'We will prepare an offer for SANY turbines for your wind farm and a run of its economics.')}</p>
+        </div>
+        <div className="hero-cta">
+          <a className="btn-action" href={offerMailto(lang)}>{L(lang, 'Написати нам', 'Write to us')}</a>
+          <a className="btn-ghost" href="#/contacts">{L(lang, 'Контакти', 'Contacts')}</a>
+        </div>
       </section>
 
       <footer className="landing-foot muted small">

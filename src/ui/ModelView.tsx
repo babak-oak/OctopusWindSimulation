@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ReadOnly } from './readonly';
+import { Gate, ReadOnly } from './readonly';
 import type { Assumptions } from '../engine/types';
 import { defaultAssumptions } from '../engine/defaults';
 import { marketData } from '../engine/data';
@@ -38,15 +38,18 @@ interface Props {
   toolbar?: React.ReactNode;
   stress: StressSizes;
   setStress: (s: StressSizes) => void;
+  /** Visitors without an account: every change attempt calls this instead of changing the model. */
+  gate?: () => void;
 }
 
-export function ModelView({ a, onChange, lang, readOnly = false, toolbar, stress, setStress }: Props) {
+export function ModelView({ a, onChange, lang, readOnly = false, toolbar, stress, setStress, gate }: Props) {
   const defaults = useMemo(() => defaultAssumptions(), []);
   const [scenario, setScenario] = useState<ScenarioId>('base');
   const [tab, setTab] = useState<Tab>('overview');
   const base = useMemo(() => run(a, marketData), [a]);
   const r = useMemo(() => (scenario === 'base' ? base : run(applyScenario(a, scenario, stress), marketData)), [a, scenario, stress, base]);
   return (
+    <Gate.Provider value={gate ?? null}>
     <ReadOnly.Provider value={readOnly}>
       <div className="model-bar">
         <div className="model-title">{toolbar}</div>
@@ -61,17 +64,18 @@ export function ModelView({ a, onChange, lang, readOnly = false, toolbar, stress
         </label>
       </div>
       <div className={`layout${readOnly ? ' readonly' : ''}`}>
-        <AssumptionsPanel a={a} d={defaults} lang={lang} onChange={readOnly || !onChange ? () => undefined : onChange} />
+        <AssumptionsPanel a={a} d={defaults} lang={lang} onChange={gate ? () => gate() : readOnly || !onChange ? () => undefined : onChange} />
         <div className="right">
           <nav className="tabs" role="tablist">
             {TABS.map((t) => (
               <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>{tr(S[t.t], lang)}</button>
             ))}
           </nav>
-          <Results a={a} md={marketData} r={r} base={base} scenario={scenario} lang={lang} tab={tab} stress={stress} setStress={setStress} projectName={a.project.name} />
+          <Results a={a} md={marketData} r={r} base={base} scenario={scenario} lang={lang} tab={tab} stress={stress} setStress={gate ? () => gate() : setStress} projectName={a.project.name} />
         </div>
       </div>
     </ReadOnly.Provider>
+    </Gate.Provider>
   );
 }
 

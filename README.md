@@ -46,5 +46,7 @@ accounts) the project is kept in the browser's local storage.
 
 Landing page with the turbine illustration (`#/`), the open model (`#/tool`), sign-in with password and a 6-digit
 email code (`#/login`), projects with autosave (`#/projects`, `#/p/<id>`), view-only links (`#/s/<token>`).
+Without an account the open model shows the reference project read-only: tabs and scenarios work, any change
+opens a sign-up prompt. Contacts page (`#/contacts`) with a pre-filled email for a SANY equipment offer.
 Supabase setup and the GoDaddy mail settings: `docs/SUPABASE_SETUP.md`. Without `VITE_SUPABASE_URL` /
 `VITE_SUPABASE_ANON_KEY` the site runs in local mode.

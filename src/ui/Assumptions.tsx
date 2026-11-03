@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { ReadOnly } from './readonly';
+import { Gate, ReadOnly } from './readonly';
 import type { Assumptions } from '../engine/types';
 import { capacityKW, itemQty, staffAnnualCost, staffCount } from '../engine/model';
 import { GROUPS, OEM, getPath, setPath, type Field } from './fields';
@@ -16,6 +16,7 @@ interface Props {
 function NumberInput({ value, decimals, onCommit, label }: { value: number; decimals: number; onCommit: (v: number) => void; label: string }) {
   const [draft, setDraft] = useState<string | null>(null);
   const ro = useContext(ReadOnly);
+  const gate = useContext(Gate);
   const shown = draft ?? num(value, decimals);
   return (
     <input
@@ -24,7 +25,7 @@ function NumberInput({ value, decimals, onCommit, label }: { value: number; deci
       inputMode="decimal"
       aria-label={label}
       value={shown}
-      onFocus={() => setDraft(String(Number(value.toFixed(decimals))))}
+      onFocus={(e) => { if (gate) { e.currentTarget.blur(); gate(); return; } setDraft(String(Number(value.toFixed(decimals)))); }}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={() => {
         const v = Number((draft ?? '').replace(/,/g, '').replace('−', '-'));
@@ -158,6 +159,7 @@ export function AssumptionsPanel(p: Props) {
   const [open, setOpen] = useState<Record<string, boolean>>({ generation: true, market: true });
   const [grantPopup, setGrantPopup] = useState(false);
   const ro = useContext(ReadOnly);
+  const gate = useContext(Gate);
   const wtg = a.capex.items.find((i) => i.id === 'wtg')!;
   const preset = OEM.find((o) => o.rate === wtg.rate)?.id ?? 'custom';
   const setItem = (id: string, key: 'rate' | 'qty' | 'manualQty', v: number | undefined) =>
@@ -195,7 +197,7 @@ export function AssumptionsPanel(p: Props) {
           <label className="switch">
             <input type="checkbox" disabled={ro} checked={a.compensation.enabled} onChange={(e) => {
               onChange({ ...a, compensation: { ...a.compensation, enabled: e.target.checked } });
-              if (e.target.checked) setGrantPopup(true);
+              if (e.target.checked && !gate) setGrantPopup(true);
             }} />
             <span>{a.compensation.enabled ? (lang === 'uk' ? 'Увімкнено' : 'On') : lang === 'uk' ? 'Вимкнено' : 'Off'}</span>
           </label>

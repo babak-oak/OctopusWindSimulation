@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 export type Route =
   | { page: 'home' }
   | { page: 'tool' }
+  | { page: 'contacts' }
   | { page: 'login'; mode: 'signin' | 'signup' | 'reset' }
   | { page: 'projects' }
   | { page: 'project'; id: string }
@@ -13,6 +14,7 @@ export function parse(hash: string): Route {
   const h = hash.replace(/^#\/?/, '');
   const [a, b] = h.split('/');
   if (a === 'tool') return { page: 'tool' };
+  if (a === 'contacts') return { page: 'contacts' };
   if (a === 'login') return { page: 'login', mode: b === 'signup' ? 'signup' : b === 'reset' ? 'reset' : 'signin' };
   if (a === 'projects') return { page: 'projects' };
   if (a === 'p' && b) return { page: 'project', id: b };

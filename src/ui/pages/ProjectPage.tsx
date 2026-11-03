@@ -78,10 +78,45 @@ export function SharedPage({ token, lang }: { token: string; lang: Lang }) {
   );
 }
 
-/** The open tool without an account: the project lives in this browser. */
+/** Shown when a visitor without an account tries to change a value on the open model. */
+function SignUpPrompt({ lang, onClose }: { lang: Lang; onClose: () => void }) {
+  const first = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    first.current?.focus();
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, []);
+  return (
+    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="gate-title" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h3 id="gate-title">{L(lang, 'Зареєструйтеся, щоб змінювати припущення', 'Create an account to change the assumptions')}</h3>
+        <p>{L(lang,
+          'Без акаунта модель показує еталонний проєкт: 12 турбін SANY по 6.25 МВт. Вкладки результатів і сценарії S1–S4 можна переглядати.',
+          'Without an account the model shows the reference project: 12 SANY turbines of 6.25 MW. You can browse the result tabs and scenarios S1–S4.')}</p>
+        <p>{L(lang,
+          'Після реєстрації можна змінювати будь-які значення, рахувати власну ВЕС і зберігати проєкти в кабінеті.',
+          'With an account you can change any value, model your own wind farm and save projects.')}</p>
+        <div className="modal-actions">
+          <a ref={first} className="btn-action" href="#/login/signup">{L(lang, 'Зареєструватися', 'Create an account')}</a>
+          <a className="btn-ghost" href="#/login">{L(lang, 'Увійти', 'Sign in')}</a>
+          <button className="link" onClick={onClose}>{L(lang, 'Закрити', 'Close')}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The open model. Signed-in users (and builds without Supabase) edit freely and the project lives in this browser;
+ * visitors without an account see the reference project and are asked to sign up on any change.
+ */
 export function ToolPage({ lang }: { lang: Lang }) {
   const KEY = 'octopus-wind:tool';
   const { enabled, session } = useAuth();
+  const gated = enabled && !session;
+  const [prompt, setPrompt] = useState(false);
+  const [reference] = useState<Assumptions>(() => migrate({} as Assumptions));
   const [a, setA] = useState<Assumptions>(() => {
     try {
       const s = localStorage.getItem(KEY) ?? localStorage.getItem('octopus-wind:v4');
@@ -91,21 +126,28 @@ export function ToolPage({ lang }: { lang: Lang }) {
   });
   const [stress, setStress] = useState<StressSizes>(defaultStress);
   useEffect(() => {
+    if (gated) return;
     const t = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch { /* storage unavailable */ } }, 500);
     return () => clearTimeout(t);
-  }, [a]);
+  }, [a, gated]);
+  const shown = gated ? reference : a;
   return (
-    <ModelView a={a} onChange={setA} lang={lang} stress={stress} setStress={setStress}
-      toolbar={(
-        <>
-          <b>{a.project.name}</b>
-          {enabled && !session && <span className="muted small">{L(lang, 'Зміни зберігаються лише в цьому браузері.', 'Changes are kept in this browser only.')} <a className="link" href="#/login/signup">{L(lang, 'Створіть акаунт', 'Create an account')}</a>{L(lang, ', щоб зберігати проєкти.', ' to save projects.')}</span>}
-          {enabled && session && (
-            <button className="btn-ghost small-btn" onClick={() => createProject(a.project.name, a).then((p) => go(`p/${p.id}`))}>
-              {L(lang, 'Зберегти в кабінет', 'Save to my projects')}
-            </button>
-          )}
-        </>
-      )} />
+    <>
+      <ModelView a={shown} onChange={setA} lang={lang} stress={gated ? defaultStress : stress} setStress={setStress}
+        gate={gated ? () => setPrompt(true) : undefined}
+        toolbar={(
+          <>
+            <b>{shown.project.name}</b>
+            {gated && <span className="muted small">{L(lang, 'Ілюстративний розрахунок еталонного проєкту.', 'An illustrative run of the reference project.')} <a className="link" href="#/login/signup">{L(lang, 'Зареєструйтеся', 'Create an account')}</a>{L(lang, ', щоб змінювати припущення і зберігати проєкти.', ' to change the assumptions and save projects.')}</span>}
+            {!enabled && <span className="muted small">{L(lang, 'Зміни зберігаються лише в цьому браузері.', 'Changes are kept in this browser only.')}</span>}
+            {enabled && session && (
+              <button className="btn-ghost small-btn" onClick={() => createProject(a.project.name, a).then((p) => go(`p/${p.id}`))}>
+                {L(lang, 'Зберегти в кабінет', 'Save to my projects')}
+              </button>
+            )}
+          </>
+        )} />
+      {prompt && <SignUpPrompt lang={lang} onClose={() => setPrompt(false)} />}
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { useRoute } from './router';
 import { supabase } from './supabase';
 import { S, tr, type Lang } from './i18n';
 import { Landing } from './pages/Landing';
+import { Contacts } from './pages/Contacts';
 import { Login } from './pages/Login';
 import { Projects } from './pages/Projects';
 import { ProjectPage, SharedPage, ToolPage } from './pages/ProjectPage';
@@ -43,6 +44,7 @@ function Shell() {
         <nav className="main-nav" aria-label={L('Розділи', 'Sections')}>
           <a href="#/tool" aria-current={route.page === 'tool' ? 'page' : undefined}>{L('Модель', 'Model')}</a>
           {enabled && session && <a href="#/projects" aria-current={route.page === 'projects' || route.page === 'project' ? 'page' : undefined}>{L('Мої проєкти', 'My projects')}</a>}
+          <a href="#/contacts" aria-current={route.page === 'contacts' ? 'page' : undefined}>{L('Контакти', 'Contacts')}</a>
           {enabled && !session && <a href="#/login" aria-current={route.page === 'login' ? 'page' : undefined}>{L('Увійти', 'Sign in')}</a>}
           {enabled && session && <button className="link" onClick={() => supabase?.auth.signOut().then(() => { window.location.hash = '#/'; })}>{L('Вийти', 'Sign out')}</button>}
         </nav>
@@ -60,6 +62,7 @@ function Shell() {
       <hr className="oc-rule" />
       {route.page === 'home' && <Landing lang={lang} theme={theme} />}
       {route.page === 'tool' && <ToolPage lang={lang} />}
+      {route.page === 'contacts' && <Contacts lang={lang} />}
       {route.page === 'login' && <Login lang={lang} mode={route.mode} key={route.mode} />}
       {route.page === 'projects' && <Projects lang={lang} />}
       {route.page === 'project' && <ProjectPage id={route.id} lang={lang} key={route.id} />}

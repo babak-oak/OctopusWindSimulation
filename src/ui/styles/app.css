@@ -192,3 +192,19 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 /* Seal: brand asset as supplied (white on Deep Sea, black on Ivory), never below 96px, clear space ¼ of its diameter */
 .seal { display: block; width: 112px; height: 112px; margin-bottom: 28px; }
 @media (max-width: 760px) { .seal { width: 96px; height: 96px; margin-bottom: 24px; } }
+
+/* Sign-up prompt on the open model */
+.modal-actions { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; margin-top: var(--space-2); }
+
+/* Contacts */
+.contacts { max-width: 1200px; margin: 0 auto; padding: var(--space-12) var(--space-6); display: grid; gap: var(--space-8); grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items: start; }
+.contacts-hero { display: grid; gap: var(--space-4); max-width: 720px; }
+.contacts-hero .hero-cta a { padding: 12px 22px; font-size: 15px; }
+.contact-card { background: var(--surface-raised); border-radius: var(--radius-md); padding: var(--space-6); display: grid; gap: var(--space-2); }
+.contact-name { font-size: 20px; line-height: 28px; font-weight: 700; }
+.contact-card dl { display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-4); margin: var(--space-3) 0 0; }
+.contact-card dt { color: var(--ink-muted); }
+.contact-card dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 760px) { .contacts { grid-template-columns: 1fr; padding: var(--space-8) var(--space-4); } }
+.offer { max-width: 1200px; margin: 0 auto; padding: var(--space-8) var(--space-6); border-top: var(--stroke-rule) solid var(--tan); display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); flex-wrap: wrap; }
+.offer h2 { font-size: 22px; line-height: 30px; font-weight: 600; margin-bottom: var(--space-2); }
