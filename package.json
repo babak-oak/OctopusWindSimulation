@@ -1,0 +1,22 @@
+{
+  "name": "octopus-wind-simulation",
+  "version": "1.0.0",
+  "description": "Wind farm economics model (Octopus Capital): engine, corrected reference workbook, cross-checks",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p .",
+    "base": "tsx scripts/run-base.ts",
+    "reference": "tsx scripts/export-defaults.ts data/default_assumptions.json && python3 -I scripts/build_reference_xlsx.py data/default_assumptions.json data/wind_profile.json data/dam_price_shape.json reference/OctopusWind_reference_75MW.xlsx"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  },
+  "private": true,
+  "type": "module"
+}
