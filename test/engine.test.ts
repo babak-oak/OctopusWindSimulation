@@ -233,3 +233,14 @@ describe('quarterly dividends with a seasonal reserve', () => {
     expect(run(y, marketData).kpis.equityIrr).toBeLessThan(r.kpis.equityIrr);
   });
 });
+
+describe('payback from COD', () => {
+  it('equals payback from construction start minus the construction period', () => {
+    let cum = 0, m = NaN;
+    const f = r.flows.equityIn.map((v, i) => r.flows.dividends[i] - v);
+    for (let i = 0; i < f.length; i++) { const p = cum; cum += f[i]; if (p < 0 && cum >= 0) { m = i - p / f[i]; break; } }
+    expect(r.kpis.paybackEquityYears).toBeCloseTo((m - 18) / 12, 9);
+    expect(r.kpis.paybackEquityYears).toBeGreaterThan(5);
+    expect(r.kpis.paybackEquityYears).toBeLessThan(6);
+  });
+});

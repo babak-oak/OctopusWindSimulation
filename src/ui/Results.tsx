@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { Assumptions, Kpis, MarketData, Result } from '../engine/types';
 import { annualGeneration, capacityKW } from '../engine/model';
 import { heatmap, riskRegister, scenarioTable, waterfall, type ScenarioId, type StressSizes } from '../engine/scenarios';
@@ -32,8 +32,8 @@ const KPIS: KpiDef[] = [
   { k: 'ebitdaAvg5', uk: 'EBITDA, середня 5 років', en: 'EBITDA, 5-year average', fmt: (v) => mln(v, 1), unit: 'EUR m', higherIsGood: true, delta: 'pct' },
   { k: 'ebitdaToCapex', uk: 'EBITDA / CAPEX', en: 'EBITDA / CAPEX', fmt: (v) => pct(v, 1), unit: '', higherIsGood: true, delta: 'pp' },
   { k: 'npToEquity', uk: 'Чистий прибуток / капітал', en: 'Net profit / equity', fmt: (v) => pct(v, 1), unit: '', higherIsGood: true, delta: 'pp' },
-  { k: 'paybackProjectYears', uk: 'Окупність проєкту', en: 'Project payback', fmt: (v) => num(v, 1), unit: 'yrs', higherIsGood: false, delta: 'pct' },
-  { k: 'paybackEquityYears', uk: 'Окупність капіталу', en: 'Equity payback', fmt: (v) => num(v, 1), unit: 'yrs', higherIsGood: false, delta: 'pct' },
+  { k: 'paybackProjectYears', uk: 'Окупність проєкту від введення', en: 'Project payback from COD', fmt: (v) => num(v, 1), unit: 'yrs', higherIsGood: false, delta: 'pct' },
+  { k: 'paybackEquityYears', uk: 'Окупність капіталу від введення', en: 'Equity payback from COD', fmt: (v) => num(v, 1), unit: 'yrs', higherIsGood: false, delta: 'pct' },
   { k: 'lcoe', uk: 'LCOE', en: 'LCOE', fmt: (v) => num(v, 1), unit: 'EUR/MWh', higherIsGood: false, delta: 'pct' },
   { k: 'dscrMin', uk: 'DSCR мінімальний', en: 'Minimum DSCR', fmt: (v) => num(v, 2), unit: '×', higherIsGood: true, delta: 'pct' },
   { k: 'dscrAvg', uk: 'DSCR середній', en: 'Average DSCR', fmt: (v) => num(v, 2), unit: '×', higherIsGood: true, delta: 'pct' },
@@ -47,8 +47,26 @@ function deltaText(d: KpiDef, v: number, b: number) {
   return d.delta === 'pp' ? `${signed((v - b) * 100, 1)} pp` : signedPct(v / b - 1, 1);
 }
 
-function Overview({ r, base, scenario, lang }: Props) {
+const fmtDate = (iso: string) => iso.split('-').reverse().join('.');
+
+/** Method notes shown by the small (i) next to a KPI. */
+function kpiNote(k: keyof Kpis, r: Result, a: Assumptions, lang: Lang): string | null {
+  const C = a.project.constructionMonths;
+  const start = fmtDate(a.project.startDate);
+  const cod = fmtDate(r.flows.date[C - 1]);
+  const div = a.finance.dividendEveryMonths === 12 ? L(lang, 'щогрудня', 'every December') : a.finance.dividendEveryMonths === 3 ? L(lang, 'щокварталу', 'quarterly') : L(lang, `кожні ${a.finance.dividendEveryMonths} міс.`, `every ${a.finance.dividendEveryMonths} months`);
+  if (k === 'paybackProjectYears') return L(lang,
+    `Пряма окупність, без дисконтування. Наростаючий потік проєкту рахується з початку будівництва (${start}): мінус CAPEX з ПДВ, далі EBITDA мінус податок без боргового щита, плюс повернення ПДВ і компенсація. Окупність — момент, коли сума стає ≥ 0 (з інтерполяцією всередині місяця). Показник — роки від введення в експлуатацію (${cod}) до цього моменту; ${C} міс. будівництва в нього не входять.`,
+    `Simple payback, undiscounted. The cumulative project flow starts at construction start (${start}): minus CAPEX incl. VAT, then EBITDA less unlevered tax, plus VAT recovered and the grant. Payback is when the sum turns ≥ 0 (interpolated within the month). The figure is the years from COD (${cod}) to that point; the ${C} construction months are not counted.`);
+  if (k === 'paybackEquityYears') return L(lang,
+    `Пряма окупність, без дисконтування. Наростаючий потік інвестора рахується з першого внеску (${start}): мінус внески капіталу за ${C} міс. будівництва, плюс дивіденди (${div}). Окупність — момент, коли отримані дивіденди зрівнюються з внесеним капіталом (з інтерполяцією всередині місяця). Показник — роки від введення в експлуатацію (${cod}) до цього моменту.`,
+    `Simple payback, undiscounted. The cumulative investor flow starts at the first contribution (${start}): minus equity contributed over ${C} construction months, plus dividends (${div}). Payback is when dividends received equal equity contributed (interpolated within the month). The figure is the years from COD (${cod}) to that point.`);
+  return null;
+}
+
+function Overview({ r, base, scenario, lang, a }: Props) {
   const k = r.kpis, b = base.kpis;
+  const [note, setNote] = useState<keyof Kpis | null>(null);
   return (
     <div>
       <div className="oc-kpis">
@@ -60,8 +78,15 @@ function Overview({ r, base, scenario, lang }: Props) {
           const zero = !/[1-9]/.test(shown);
           return (
             <div key={d.k} className={`oc-kpi${i === 0 ? ' oc-kpi--action' : ''}`}>
-              <p className="oc-overline">{L(lang, d.uk, d.en)}{d.unit ? `, ${lang === 'uk' ? unitUk[d.unit] : d.unit}` : ''}</p>
+              <div className="kpi-head">
+                <p className="oc-overline">{L(lang, d.uk, d.en)}{d.unit ? `, ${lang === 'uk' ? unitUk[d.unit] : d.unit}` : ''}</p>
+                {kpiNote(d.k, r, a, lang) && (
+                  <button className="icon" aria-expanded={note === d.k} aria-label={L(lang, 'Як рахується', 'How it is calculated')}
+                    onClick={() => setNote(note === d.k ? null : d.k)}>i</button>
+                )}
+              </div>
               <p className="oc-kpi__value">{d.fmt(v)}</p>
+              {note === d.k && <p className="kpi-note">{kpiNote(d.k, r, a, lang)}</p>}
               {scenario !== 'base' && !zero ? (
                 <p className={`oc-kpi__delta ${good ? 'oc-good' : 'oc-bad'}`}>{diff > 0 ? '▲' : '▼'} {shown} {L(lang, 'до бази', 'vs base')}</p>
               ) : (

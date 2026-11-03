@@ -192,6 +192,7 @@ export interface Kpis {
   ebitdaAvg5: number;
   ebitdaToCapex: number;
   npToEquity: number;
+  /** simple payback in years from COD (cumulative flow from construction start turns non-negative) */
   paybackProjectYears: number;
   paybackEquityYears: number;
   lcoe: number;

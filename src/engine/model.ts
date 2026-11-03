@@ -347,8 +347,9 @@ export function run(a: Assumptions, md: MarketData): Result {
     ebitdaAvg5,
     ebitdaToCapex: ebitdaAvg5 / capexTotal,
     npToEquity: npAvg / equity,
-    paybackProjectYears: paybackMonths(fl.projectFcf) / 12,
-    paybackEquityYears: paybackMonths(equityFlows) / 12,
+    // simple payback, counted from COD; the cumulative flow starts with construction outflows
+    paybackProjectYears: (paybackMonths(fl.projectFcf) - C) / 12,
+    paybackEquityYears: (paybackMonths(equityFlows) - C) / 12,
     lcoe,
     dscrMin: Math.min(...dscrs),
     dscrAvg: sum(dscrs) / dscrs.length,
