@@ -58,7 +58,7 @@ function Shell() {
         </div>
       </header>
       <hr className="oc-rule" />
-      {route.page === 'home' && <Landing lang={lang} />}
+      {route.page === 'home' && <Landing lang={lang} theme={theme} />}
       {route.page === 'tool' && <ToolPage lang={lang} />}
       {route.page === 'login' && <Login lang={lang} mode={route.mode} key={route.mode} />}
       {route.page === 'projects' && <Projects lang={lang} />}

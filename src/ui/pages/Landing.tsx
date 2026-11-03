@@ -24,14 +24,16 @@ const FEATURES: [string, string, string, string][] = [
     'Any wind farm', 'SANY, Nordex and Vestas presets. Change the turbine count and roads, cables, substation, output and staff follow.'],
 ];
 
-export function Landing({ lang }: { lang: Lang }) {
+export function Landing({ lang, theme }: { lang: Lang; theme: 'dark' | 'light' }) {
   const { enabled, session } = useAuth();
   const k = useMemo(() => run(defaultAssumptions(), marketData).kpis, []);
   return (
     <div className="landing">
       <section className="hero">
         <div className="hero-copy">
-          <p className="oc-overline">Octopus Capital · Wind</p>
+          <img className="seal" width={112} height={112} alt="Octopus Capital"
+            src={`${import.meta.env.BASE_URL}brand/OctopusCapital_print_${theme === 'dark' ? 'white' : 'black'}.svg`} />
+          <p className="oc-overline">{L(lang, 'Вітрова генерація · Україна', 'Wind generation · Ukraine')}</p>
           <h1 className="display">{L(lang, 'Економіка вітрової електростанції — за хвилини', 'Wind farm economics, in minutes')}</h1>
           <p className="hero-lead">
             {L(lang,

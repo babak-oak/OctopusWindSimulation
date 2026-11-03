@@ -163,7 +163,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .hero-lead { font-size: 17px; line-height: 28px; color: var(--ink-muted); max-width: 620px; }
 .hero-cta { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-2); }
 .hero-cta a { padding: 12px 22px; font-size: 15px; }
-.scene { width: 100%; height: auto; display: block; margin-top: calc(-1 * clamp(40px, 10vw, 160px)); }
+.scene { width: 100%; height: auto; display: block; margin-top: calc(-1 * clamp(16px, 5vw, 80px)); }
 .scene .sun { fill: var(--tan); opacity: .9; }
 .scene .hill-far { fill: var(--surface-raised); }
 .scene .hill-mid { fill: color-mix(in srgb, var(--surface-raised) 55%, var(--surface-sunken)); }
@@ -189,3 +189,6 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .steps li { font-size: 15px; line-height: 24px; color: var(--ink-muted); }
 .steps li b { color: var(--ink); }
 @media (max-width: 760px) { .scene { height: 300px; width: 100%; margin-top: -20px; } }
+/* Seal: brand asset as supplied (white on Deep Sea, black on Ivory), never below 96px, clear space ¼ of its diameter */
+.seal { display: block; width: 112px; height: 112px; margin-bottom: 28px; }
+@media (max-width: 760px) { .seal { width: 96px; height: 96px; margin-bottom: 24px; } }
