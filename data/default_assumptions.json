@@ -4,6 +4,10 @@
   "turbines": 12,
   "turbineMW": 6.25,
   "gridMW": 72,
+  "reference": {
+   "turbines": 12,
+   "turbineMW": 6.25
+  },
   "startDate": "2027-03-01",
   "constructionMonths": 18,
   "lifeYears": 25
@@ -81,6 +85,7 @@
     "id": "roads",
     "nameUk": "Дороги",
     "nameEn": "Roads",
+    "scale": "turbines",
     "qty": 16.37,
     "rate": 16000000,
     "currency": "UAH",
@@ -92,6 +97,7 @@
     "id": "cables",
     "nameUk": "Внутрішні кабелі 35 кВ",
     "nameEn": "Internal 35 kV cables",
+    "scale": "turbines",
     "qty": 25,
     "rate": 5000000,
     "currency": "UAH",
@@ -114,6 +120,7 @@
     "id": "substation",
     "nameUk": "Підстанція",
     "nameEn": "Substation",
+    "scale": "installedMW",
     "qty": 1,
     "rate": 6200000,
     "currency": "EUR",

@@ -8,7 +8,7 @@ import { AssumptionsPanel } from './Assumptions';
 import { Results, TABS, type Tab } from './Results';
 import { S, tr, type Lang } from './i18n';
 
-const KEY = 'octopus-wind:v1';
+const KEY = 'octopus-wind:v2';
 type Saved = { a: Assumptions; lang: Lang; theme: 'dark' | 'light'; stress: StressSizes };
 
 function load(): Partial<Saved> {
@@ -23,7 +23,7 @@ function load(): Partial<Saved> {
 export function App() {
   const defaults = useMemo(() => defaultAssumptions(), []);
   const saved = useMemo(load, []);
-  const [a, setA] = useState<Assumptions>(() => (saved.a && saved.a.project?.gridMW ? saved.a : defaultAssumptions()));
+  const [a, setA] = useState<Assumptions>(() => (saved.a && saved.a.project?.reference ? saved.a : defaultAssumptions()));
   const [lang, setLang] = useState<Lang>(saved.lang ?? 'uk');
   const [theme, setTheme] = useState<'dark' | 'light'>(saved.theme ?? 'dark');
   const [stress, setStress] = useState<StressSizes>(saved.stress ?? defaultStress);

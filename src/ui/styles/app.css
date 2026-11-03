@@ -103,3 +103,4 @@ select, input { background: var(--surface-raised); border: 1px solid var(--borde
 .modal { background: var(--surface-raised); border-radius: var(--radius-lg); padding: var(--space-6); max-width: 640px; box-shadow: var(--shadow-overlay); display: grid; gap: var(--space-3); }
 .modal h3 { font-size: 18px; line-height: 26px; }
 .btn-action { justify-self: start; background: var(--action); color: var(--on-action); border: 0; border-radius: var(--radius-md); padding: 8px 16px; font-weight: 700; cursor: pointer; }
+.qty-cell { display: inline-flex; gap: 4px; align-items: center; }

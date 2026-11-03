@@ -12,6 +12,10 @@ export interface CapexItem {
   qty: number;
   /** per-kW items follow the installed or the grid (project) capacity */
   qtyBasis?: 'installedKW' | 'gridKW';
+  /** qty is given for the reference layout and scales with the turbine count or the installed MW */
+  scale?: 'turbines' | 'installedMW';
+  /** user override of the scaled quantity (absolute value); undefined = automatic */
+  manualQty?: number;
   /** unit rate in `currency` */
   rate: number;
   currency: Currency;
@@ -28,6 +32,8 @@ export interface Assumptions {
     turbineMW: number;
     /** project (grid connection) capacity, MW */
     gridMW: number;
+    /** layout the scalable quantities (roads, cables, substation) were estimated for */
+    reference: { turbines: number; turbineMW: number };
     /** first day of construction month 1, ISO yyyy-mm-dd */
     startDate: string;
     constructionMonths: number;

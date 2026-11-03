@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultAssumptions } from '../src/engine/defaults';
 import { marketData } from '../src/engine/data';
-import { annualGeneration, run, scheduleWeights } from '../src/engine/model';
+import { annualGeneration, itemQty, run, scheduleWeights } from '../src/engine/model';
 import { xirr, xnpv } from '../src/engine/finance';
 import { applyScenario, heatmap, riskRegister, scenarioTable, waterfall } from '../src/engine/scenarios';
 
@@ -136,5 +136,32 @@ describe('stress tests (ТЗ 6.3)', () => {
     const rr = riskRegister(a, marketData);
     expect(rr.length).toBe(12);
     rr.forEach((x) => expect(x.expected).toBeGreaterThan(0));
+  });
+});
+
+describe('scaling with the turbine count', () => {
+  const half = defaultAssumptions();
+  half.project.turbines = 6;
+  const q = (x: typeof half, id: string) => itemQty(x, x.capex.items.find((i) => i.id === id)!);
+  it('roads and cables scale with turbines, the substation with installed MW', () => {
+    expect(q(half, 'roads')).toBeCloseTo(16.37 / 2, 9);
+    expect(q(half, 'cables')).toBeCloseTo(25 / 2, 9);
+    expect(q(half, 'substation')).toBeCloseTo(0.5, 9);
+    const big = defaultAssumptions();
+    big.project.turbineMW = 7.5;
+    expect(q(big, 'roads')).toBeCloseTo(16.37, 9);
+    expect(q(big, 'substation')).toBeCloseTo(1.2, 9);
+  });
+  it('fixed items do not scale', () => {
+    expect(q(half, 'cableSub')).toBe(1);
+    expect(q(half, 'relay')).toBe(1);
+  });
+  it('a manual quantity overrides scaling', () => {
+    const m = structuredClone(half);
+    m.capex.items.find((i) => i.id === 'roads')!.manualQty = 11;
+    expect(q(m, 'roads')).toBe(11);
+  });
+  it('reference layout gives the reference quantities', () => {
+    expect(q(a, 'roads')).toBe(16.37);
   });
 });

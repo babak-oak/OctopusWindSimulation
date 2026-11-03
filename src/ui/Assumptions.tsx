@@ -84,8 +84,9 @@ export function AssumptionsPanel(p: Props) {
   const [grantPopup, setGrantPopup] = useState(false);
   const wtg = a.capex.items.find((i) => i.id === 'wtg')!;
   const preset = OEM.find((o) => o.rate === wtg.rate)?.id ?? 'custom';
-  const setItem = (id: string, key: 'rate' | 'qty', v: number) =>
+  const setItem = (id: string, key: 'rate' | 'qty' | 'manualQty', v: number | undefined) =>
     onChange({ ...a, capex: { ...a.capex, items: a.capex.items.map((i) => (i.id === id ? { ...i, [key]: v } : i)) } });
+  const ref = a.project.reference;
   const kw = capacityKW(a);
   return (
     <aside className="assumptions" aria-label={tr(S.assumptions, lang)}>
@@ -144,11 +145,27 @@ export function AssumptionsPanel(p: Props) {
             <tbody>
               {a.capex.items.map((i) => {
                 const di = d.capex.items.find((x) => x.id === i.id);
-                const changed = !di || di.rate !== i.rate || di.qty !== i.qty;
+                const changed = !di || di.rate !== i.rate || di.qty !== i.qty || i.manualQty !== undefined;
+                const scaled = !!i.scale && !i.qtyBasis;
+                const auto = scaled && i.manualQty === undefined;
+                const basisTxt = i.scale === 'turbines'
+                  ? (lang === 'uk' ? `∝ кількості ВЕУ (еталон ${ref.turbines} шт.: ${num(i.qty, 2)})` : `∝ turbine count (reference ${ref.turbines}: ${num(i.qty, 2)})`)
+                  : (lang === 'uk' ? `∝ встановленій потужності (еталон ${num(ref.turbines * ref.turbineMW, 1)} МВт: ${num(i.qty, 2)})` : `∝ installed MW (reference ${num(ref.turbines * ref.turbineMW, 1)} MW: ${num(i.qty, 2)})`);
                 return (
                   <tr key={i.id} className={changed ? 'changed' : ''} title={i.source}>
-                    <td>{lang === 'uk' ? i.nameUk : i.nameEn}</td>
-                    <td className="n">{i.qtyBasis ? num(itemQty(a, i), 0) : <NumberInput value={i.qty} decimals={2} label={`${i.nameEn} qty`} onCommit={(v) => setItem(i.id, 'qty', v)} />}</td>
+                    <td>{lang === 'uk' ? i.nameUk : i.nameEn}
+                      {scaled && <div className="field-src">{auto ? (lang === 'uk' ? 'авто ' : 'auto ') : (lang === 'uk' ? 'вручну ' : 'manual ')}{basisTxt}</div>}
+                    </td>
+                    <td className="n">
+                      {i.qtyBasis ? num(itemQty(a, i), 0)
+                        : scaled ? (
+                          <span className="qty-cell">
+                            <NumberInput value={itemQty(a, i)} decimals={2} label={`${i.nameEn} qty`} onCommit={(v) => setItem(i.id, 'manualQty', v)} />
+                            {!auto && <button className="icon" title={lang === 'uk' ? 'Повернути автоматичний розрахунок' : 'Back to automatic'} aria-label="auto" onClick={() => setItem(i.id, 'manualQty', undefined)}>↺</button>}
+                          </span>
+                        )
+                        : <NumberInput value={i.qty} decimals={2} label={`${i.nameEn} qty`} onCommit={(v) => setItem(i.id, 'qty', v)} />}
+                    </td>
                     <td className="n"><NumberInput value={i.rate} decimals={0} label={`${i.nameEn} rate`} onCommit={(v) => setItem(i.id, 'rate', v)} />
                       <span className="unit">{i.currency === 'UAH' ? (i.qtyBasis ? 'грн/кВт' : 'грн') : i.qtyBasis ? '€/kW' : '€'}</span></td>
                   </tr>

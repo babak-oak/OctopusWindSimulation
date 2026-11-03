@@ -53,6 +53,8 @@ rows = [
     ('i_turbines', 'Кількість ВЕУ', p['turbines'], 'шт.', 'Input!K26'),
     ('i_turbineMW', 'Потужність ВЕУ', p['turbineMW'], 'МВт', 'Input!K24'),
     ('i_gridMW', 'Проєктна потужність (приєднання)', p['gridMW'], 'МВт', 'Пропозиція SANY, C16'),
+    ('i_refT', 'Еталонне компонування: кількість ВЕУ', p['reference']['turbines'], 'шт.', 'Для масштабування доріг, кабелів, підстанції'),
+    ('i_refMW', 'Еталонне компонування: потужність ВЕУ', p['reference']['turbineMW'], 'МВт', 'Для масштабування підстанції'),
     ('i_start', 'Початок будівництва (місяць 1)', '2027-03-01', 'дата', 'Рішення 03.11.2026'),
     ('i_C', 'Тривалість будівництва', p['constructionMonths'], 'міс.', 'Рішення 03.11.2026'),
     ('i_life', 'Строк експлуатації', p['lifeYears'], 'років', 'Рішення 03.11.2026'),
@@ -229,7 +231,20 @@ first = 4
 for j, it in enumerate(items):
     rr = first + j
     basis = it.get('qtyBasis')
-    qty = '=d_kw' if basis == 'installedKW' else ('=i_gridMW*1000' if basis == 'gridKW' else it['qty'])
+    sc = it.get('scale')
+    if basis == 'installedKW':
+        qty = '=d_kw'
+    elif basis == 'gridKW':
+        qty = '=i_gridMW*1000'
+    elif it.get('manualQty') is not None:
+        qty = it['manualQty']
+    elif sc == 'turbines':
+        qty = f"={it['qty']}*i_turbines/i_refT"
+    elif sc == 'installedMW':
+        qty = f"={it['qty']}*d_kw/(i_refT*i_refMW*1000)"
+    else:
+        qty = it['qty']
+    basis = basis or (sc if it.get('manualQty') is None else None)
     vals = [it['id'], it['nameUk'], qty, it['rate'], it['currency'], 1 if it['vat'] else 0, it['schedule']]
     for c, v in enumerate(vals, 1):
         cell = wc.cell(row=rr, column=c, value=v)

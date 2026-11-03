@@ -8,7 +8,10 @@ const dir = process.argv[2];
 mkdirSync(dir, { recursive: true });
 const base = defaultAssumptions();
 const grant = defaultAssumptions(); grant.compensation.enabled = true;
+const half = defaultAssumptions(); half.project.turbines = 8;
+const manual = structuredClone(half); manual.capex.items.find((i) => i.id === 'roads')!.manualQty = 14;
 const cases: Record<string, ReturnType<typeof defaultAssumptions>> = {
+  half, manual,
   base, grant, S1: applyScenario(base, 'S1'), S2: applyScenario(base, 'S2'), S3: applyScenario(base, 'S3'), S4: applyScenario(base, 'S4'),
 };
 for (const [k, a] of Object.entries(cases)) {

@@ -9,7 +9,7 @@ KEYS = ['capexExVat', 'debt', 'equity', 'idc', 'fee', 'vatPaid', 'annualGenerati
 ANN = [('Генерація, МВт·год', 'generation'), ('EBITDA', 'ebitda'), ('Чистий прибуток', 'netProfit'), ('Дивіденди', 'dividends'), ('Кредит', 'debt'), ('Гроші', 'cash')]
 worst = 0.0
 report = []
-for case in ['base', 'grant', 'S1', 'S2', 'S3', 'S4']:
+for case in ['base', 'grant', 'S1', 'S2', 'S3', 'S4', 'half', 'manual']:
     out = os.path.join(cases, f'{case}.xlsx')
     subprocess.run([sys.executable, '-I', os.path.join(here, 'build_reference_xlsx.py'), os.path.join(cases, f'{case}.assumptions.json'),
                     os.path.join(data, 'wind_profile.json'), os.path.join(data, 'dam_price_shape.json'), out], check=True, capture_output=True)

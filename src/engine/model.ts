@@ -15,13 +15,25 @@ export function annualGeneration(a: Assumptions): number {
 }
 
 /** Item amount in EUR ex VAT, before contingency and stress multiplier. */
-export function itemQty(a: Assumptions, i: { qty: number; qtyBasis?: string }): number {
-  if (i.qtyBasis === 'installedKW') return capacityKW(a);
-  if (i.qtyBasis === 'gridKW') return a.project.gridMW * 1000;
-  return i.qty;
+type QtyItem = { qty: number; qtyBasis?: string; scale?: string; manualQty?: number };
+
+/** Scale factor of an item relative to the reference layout (1 when it does not scale). */
+export function scaleFactor(a: Assumptions, i: { scale?: string }): number {
+  const ref = a.project.reference;
+  if (i.scale === 'turbines') return a.project.turbines / ref.turbines;
+  if (i.scale === 'installedMW') return (a.project.turbines * a.project.turbineMW) / (ref.turbines * ref.turbineMW);
+  return 1;
 }
 
-export function itemAmount(a: Assumptions, i: { qty: number; qtyBasis?: string; rate: number; currency: string }): number {
+/** Quantity used in the calculation: per-kW basis, a manual override, or the reference quantity scaled. */
+export function itemQty(a: Assumptions, i: QtyItem): number {
+  if (i.qtyBasis === 'installedKW') return capacityKW(a);
+  if (i.qtyBasis === 'gridKW') return a.project.gridMW * 1000;
+  if (i.manualQty !== undefined) return i.manualQty;
+  return i.qty * scaleFactor(a, i);
+}
+
+export function itemAmount(a: Assumptions, i: QtyItem & { rate: number; currency: string }): number {
   const v = itemQty(a, i) * i.rate;
   return i.currency === 'UAH' ? v / a.fx.uahPerEur : v;
 }
