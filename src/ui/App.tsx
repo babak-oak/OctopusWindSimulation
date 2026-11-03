@@ -1,94 +1,77 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import type { Assumptions } from '../engine/types';
-import { defaultAssumptions } from '../engine/defaults';
-import { marketData } from '../engine/data';
-import { run } from '../engine/model';
-import { applyScenario, defaultStress, type ScenarioId, type StressSizes } from '../engine/scenarios';
-import { AssumptionsPanel } from './Assumptions';
-import { Results, TABS, type Tab } from './Results';
+import React, { useEffect, useState } from 'react';
+import { AuthProvider, useAuth } from './auth';
+import { useRoute } from './router';
+import { supabase } from './supabase';
 import { S, tr, type Lang } from './i18n';
+import { Landing } from './pages/Landing';
+import { Login } from './pages/Login';
+import { Projects } from './pages/Projects';
+import { ProjectPage, SharedPage, ToolPage } from './pages/ProjectPage';
 
-const KEY = 'octopus-wind:v4';
-type Saved = { a: Assumptions; lang: Lang; theme: 'dark' | 'light'; stress: StressSizes };
-
-function load(): Partial<Saved> {
+const PREFS = 'octopus-wind:prefs';
+type Prefs = { lang: Lang; theme: 'dark' | 'light' };
+function loadPrefs(): Prefs {
   try {
-    const s = localStorage.getItem(KEY);
-    return s ? (JSON.parse(s) as Partial<Saved>) : {};
+    const p = JSON.parse(localStorage.getItem(PREFS) ?? 'null') as Prefs | null;
+    if (p) return p;
+    const old = JSON.parse(localStorage.getItem('octopus-wind:v4') ?? 'null') as Partial<Prefs> | null;
+    return { lang: old?.lang ?? 'uk', theme: old?.theme ?? 'dark' };
   } catch {
-    return {};
+    return { lang: 'uk', theme: 'dark' };
   }
 }
 
-export function App() {
-  const defaults = useMemo(() => defaultAssumptions(), []);
-  const saved = useMemo(load, []);
-  const [a, setA] = useState<Assumptions>(() => {
-    if (!saved.a || !saved.a.finance?.dividendEveryMonths) return defaultAssumptions();
-    // projects saved before units were added get them from the defaults
-    const d = defaultAssumptions();
-    return { ...saved.a, capex: { ...saved.a.capex, items: saved.a.capex.items.map((i) => ({ ...i, qtyUnit: i.qtyUnit ?? d.capex.items.find((x) => x.id === i.id)?.qtyUnit })) } };
-  });
-  const [lang, setLang] = useState<Lang>(saved.lang ?? 'uk');
-  const [theme, setTheme] = useState<'dark' | 'light'>(saved.theme ?? 'dark');
-  const [stress, setStress] = useState<StressSizes>(saved.stress ?? defaultStress);
-  const [scenario, setScenario] = useState<ScenarioId>('base');
-  const [tab, setTab] = useState<Tab>('overview');
-
+function Shell() {
+  const route = useRoute();
+  const { enabled, session } = useAuth();
+  const [prefs, setPrefs] = useState<Prefs>(loadPrefs);
+  const { lang, theme } = prefs;
+  const L = (uk: string, en: string) => (lang === 'uk' ? uk : en);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.lang = lang;
-  }, [theme, lang]);
-  useEffect(() => {
-    const id = setTimeout(() => {
-      try { localStorage.setItem(KEY, JSON.stringify({ a, lang, theme, stress })); } catch { /* storage unavailable */ }
-    }, 500);
-    return () => clearTimeout(id);
-  }, [a, lang, theme, stress]);
-
-  const base = useMemo(() => run(a, marketData), [a]);
-  const r = useMemo(() => (scenario === 'base' ? base : run(applyScenario(a, scenario, stress), marketData)), [a, scenario, stress, base]);
-  const projectName = a.project.name;
+    try { localStorage.setItem(PREFS, JSON.stringify(prefs)); } catch { /* storage unavailable */ }
+  }, [prefs]);
 
   return (
     <div className="oc app">
       <header className="topbar">
-        <div className="brand">
+        <a className="brand" href="#/">
           <p className="oc-overline">Octopus Capital</p>
-          <h1>{tr(S.app, lang)} · {projectName}</h1>
-        </div>
+          <span className="brand-name">{tr(S.app, lang)}</span>
+        </a>
+        <nav className="main-nav" aria-label={L('Розділи', 'Sections')}>
+          <a href="#/tool" aria-current={route.page === 'tool' ? 'page' : undefined}>{L('Модель', 'Model')}</a>
+          {enabled && session && <a href="#/projects" aria-current={route.page === 'projects' || route.page === 'project' ? 'page' : undefined}>{L('Мої проєкти', 'My projects')}</a>}
+          {enabled && !session && <a href="#/login" aria-current={route.page === 'login' ? 'page' : undefined}>{L('Увійти', 'Sign in')}</a>}
+          {enabled && session && <button className="link" onClick={() => supabase?.auth.signOut().then(() => { window.location.hash = '#/'; })}>{L('Вийти', 'Sign out')}</button>}
+        </nav>
         <div className="controls">
-          <label>{tr(S.scenario, lang)}
-            <select value={scenario} onChange={(e) => setScenario(e.target.value as ScenarioId)}>
-              <option value="base">{tr(S.base, lang)}</option>
-              <option value="S1">{tr(S.s1, lang)}</option>
-              <option value="S2">{tr(S.s2, lang)}</option>
-              <option value="S3">{tr(S.s3, lang)}</option>
-              <option value="S4">{tr(S.s4, lang)}</option>
-            </select>
-          </label>
           <div className="seg" role="group" aria-label="Language">
-            <button aria-pressed={lang === 'uk'} onClick={() => setLang('uk')}>UA</button>
-            <button aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
+            <button aria-pressed={lang === 'uk'} onClick={() => setPrefs({ ...prefs, lang: 'uk' })}>UA</button>
+            <button aria-pressed={lang === 'en'} onClick={() => setPrefs({ ...prefs, lang: 'en' })}>EN</button>
           </div>
           <div className="seg" role="group" aria-label={tr(S.theme, lang)}>
-            <button aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>{tr(S.dark, lang)}</button>
-            <button aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>{tr(S.light, lang)}</button>
+            <button aria-pressed={theme === 'dark'} onClick={() => setPrefs({ ...prefs, theme: 'dark' })}>{tr(S.dark, lang)}</button>
+            <button aria-pressed={theme === 'light'} onClick={() => setPrefs({ ...prefs, theme: 'light' })}>{tr(S.light, lang)}</button>
           </div>
         </div>
       </header>
       <hr className="oc-rule" />
-      <div className="layout">
-        <AssumptionsPanel a={a} d={defaults} lang={lang} onChange={setA} />
-        <div className="right">
-          <nav className="tabs" role="tablist">
-            {TABS.map((t) => (
-              <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>{tr(S[t.t], lang)}</button>
-            ))}
-          </nav>
-          <Results a={a} md={marketData} r={r} base={base} scenario={scenario} lang={lang} tab={tab} stress={stress} setStress={setStress} projectName={projectName} />
-        </div>
-      </div>
+      {route.page === 'home' && <Landing lang={lang} />}
+      {route.page === 'tool' && <ToolPage lang={lang} />}
+      {route.page === 'login' && <Login lang={lang} mode={route.mode} key={route.mode} />}
+      {route.page === 'projects' && <Projects lang={lang} />}
+      {route.page === 'project' && <ProjectPage id={route.id} lang={lang} key={route.id} />}
+      {route.page === 'share' && <SharedPage token={route.token} lang={lang} />}
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <AuthProvider>
+      <Shell />
+    </AuthProvider>
   );
 }

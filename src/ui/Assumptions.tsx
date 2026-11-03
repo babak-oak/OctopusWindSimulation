@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
+import { ReadOnly } from './readonly';
 import type { Assumptions } from '../engine/types';
 import { capacityKW, itemQty, staffAnnualCost, staffCount } from '../engine/model';
 import { GROUPS, OEM, getPath, setPath, type Field } from './fields';
@@ -14,9 +15,11 @@ interface Props {
 
 function NumberInput({ value, decimals, onCommit, label }: { value: number; decimals: number; onCommit: (v: number) => void; label: string }) {
   const [draft, setDraft] = useState<string | null>(null);
+  const ro = useContext(ReadOnly);
   const shown = draft ?? num(value, decimals);
   return (
     <input
+      disabled={ro}
       className="num"
       inputMode="decimal"
       aria-label={label}
@@ -38,6 +41,7 @@ function FieldRow({ f, a, d, lang, onChange }: { f: Field } & Props) {
   const dv = getPath(d, f.path);
   const changed = JSON.stringify(v) !== JSON.stringify(dv);
   const [info, setInfo] = useState(false);
+  const ro = useContext(ReadOnly);
   const label = tr(f.label, lang);
   let control: React.ReactNode;
   let out = false;
@@ -107,13 +111,13 @@ function FieldRow({ f, a, d, lang, onChange }: { f: Field } & Props) {
   if (f.kind === 'bool') {
     control = (
       <label className="switch">
-        <input type="checkbox" checked={Boolean(v)} onChange={(e) => onChange(setPath(a, f.path, e.target.checked))} aria-label={label} />
+        <input type="checkbox" disabled={ro} checked={Boolean(v)} onChange={(e) => onChange(setPath(a, f.path, e.target.checked))} aria-label={label} />
         <span>{v ? (lang === 'uk' ? 'Так' : 'Yes') : lang === 'uk' ? 'Ні' : 'No'}</span>
       </label>
     );
   } else if (f.kind === 'date') {
     control = (
-      <input type="month" aria-label={label} value={String(v).slice(0, 7)}
+      <input type="month" disabled={ro} aria-label={label} value={String(v).slice(0, 7)}
         onChange={(e) => e.target.value && onChange(setPath(a, f.path, `${e.target.value}-01`))} />
     );
   } else {
@@ -153,6 +157,7 @@ export function AssumptionsPanel(p: Props) {
   const { a, d, lang, onChange } = p;
   const [open, setOpen] = useState<Record<string, boolean>>({ generation: true, market: true });
   const [grantPopup, setGrantPopup] = useState(false);
+  const ro = useContext(ReadOnly);
   const wtg = a.capex.items.find((i) => i.id === 'wtg')!;
   const preset = OEM.find((o) => o.rate === wtg.rate)?.id ?? 'custom';
   const setItem = (id: string, key: 'rate' | 'qty' | 'manualQty', v: number | undefined) =>
@@ -163,7 +168,7 @@ export function AssumptionsPanel(p: Props) {
     <aside className="assumptions" aria-label={tr(S.assumptions, lang)}>
       <div className="panel-head">
         <p className="oc-overline">{tr(S.assumptions, lang)}</p>
-        <button className="link" onClick={() => onChange(structuredClone(d))}>{tr(S.resetAll, lang)}</button>
+        {!ro && <button className="link" onClick={() => onChange(structuredClone(d))}>{tr(S.resetAll, lang)}</button>}
       </div>
       <p className="muted small">{num(kw / 1000, 1)} MW · {tr(S.ivoryNote, lang)}</p>
 
@@ -172,7 +177,7 @@ export function AssumptionsPanel(p: Props) {
         <div className="field">
           <div className="field-head"><span className="field-label">{tr(S.oem, lang)}</span></div>
           <div className="field-ctl">
-            <select value={preset} onChange={(e) => {
+            <select disabled={ro} value={preset} onChange={(e) => {
               const o = OEM.find((x) => x.id === e.target.value);
               if (o) setItem('wtg', 'rate', o.rate);
             }}>
@@ -188,7 +193,7 @@ export function AssumptionsPanel(p: Props) {
             <button className="icon" onClick={() => setGrantPopup(true)} aria-label={tr(S.source, lang)}>i</button>
           </div>
           <label className="switch">
-            <input type="checkbox" checked={a.compensation.enabled} onChange={(e) => {
+            <input type="checkbox" disabled={ro} checked={a.compensation.enabled} onChange={(e) => {
               onChange({ ...a, compensation: { ...a.compensation, enabled: e.target.checked } });
               if (e.target.checked) setGrantPopup(true);
             }} />

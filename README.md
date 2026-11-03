@@ -41,3 +41,10 @@ Screens: assumptions with sources and reset, OEM presets, 15% compensation popup
 and price, CAPEX and construction, P&L, Balance sheet, Cash flow, Debt, Sensitivity (A table, B waterfall, C grid),
 Risks. UA / EN, Deep Sea / Ivory themes, Octopus design system with the ISO 24896 notation. Until stage 3 (Supabase
 accounts) the project is kept in the browser's local storage.
+
+## Accounts (stage 3)
+
+Landing page with the turbine illustration (`#/`), the open model (`#/tool`), sign-in with password and a 6-digit
+email code (`#/login`), projects with autosave (`#/projects`, `#/p/<id>`), view-only links (`#/s/<token>`).
+Supabase setup and the GoDaddy mail settings: `docs/SUPABASE_SETUP.md`. Without `VITE_SUPABASE_URL` /
+`VITE_SUPABASE_ANON_KEY` the site runs in local mode.
