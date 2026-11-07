@@ -1,5 +1,6 @@
 // Octopus Wind Simulation — engine types.
 // All money in EUR, ex VAT unless stated. Prices in 2026 terms.
+import type { SiteConfig } from './wind';
 
 export type Schedule = 'turbine' | 'works' | 'montage' | 'dev';
 export type Currency = 'EUR' | 'UAH';
@@ -64,6 +65,8 @@ export interface Assumptions {
     aepIncludesLosses: boolean;
     availability: number;
     techLosses: number;
+    /** wind at the coordinates (site mode) instead of the OEM proposal; absent = proposal */
+    site?: SiteConfig;
   };
   market: {
     /** average DAM price over all hours, EUR/MWh, base year */

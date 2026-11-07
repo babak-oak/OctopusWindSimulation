@@ -1,5 +1,6 @@
 import type { AnnualRow, Assumptions, Flows, Kpis, MarketData, Result } from './types';
 import { calMonth, monthEnd, paybackMonths, xirr, xnpv } from './finance';
+import { siteNetAEP } from './wind';
 
 const sum = (a: number[]) => a.reduce((s, v) => s + v, 0);
 const zeros = (n: number) => new Array<number>(n).fill(0);
@@ -14,7 +15,14 @@ const turbineFactor = (a: Assumptions) => a.project.turbines / a.project.referen
 
 /** Net AEP: manual value, or the reference AEP scaled with installed MW (same capacity factor). */
 export function netAEP(a: Assumptions): number {
-  return a.generation.manualAEP ?? a.generation.netAEP_MWh * mwFactor(a);
+  if (a.generation.manualAEP != null) return a.generation.manualAEP;
+  const site = a.generation.site ? siteNetAEP(a.generation.site, a.project.turbines) : undefined;
+  return site ?? a.generation.netAEP_MWh * mwFactor(a);
+}
+/** 12 x 24 generation shares: computed for the site in site mode, otherwise the proposal profile. */
+export function windShares(a: Assumptions, md: MarketData): number[][] {
+  const s = a.generation.site;
+  return s?.mode === 'site' && s.result ? s.result.shares : md.windShares;
 }
 /** Grid (project) capacity, MW: manual value, or the reference scaled with installed MW. */
 export function gridMW(a: Assumptions): number {
@@ -98,6 +106,7 @@ export function scheduleWeights(a: Assumptions, kind: string): number[] {
 }
 
 export function run(a: Assumptions, md: MarketData): Result {
+  const ws = windShares(a, md);
   const C = a.project.constructionMonths;
   const L = a.project.lifeYears * 12;
   const T = C + L;
@@ -193,7 +202,7 @@ export function run(a: Assumptions, md: MarketData): Result {
     } else {
       const o = t - C; // ops month 1..L
       // generation and revenue
-      const shares = md.windShares[month - 1];
+      const shares = ws[month - 1];
       const shape = md.priceShape[month - 1];
       let gen = 0, rev = 0;
       for (let h = 0; h < 24; h++) {
@@ -327,7 +336,7 @@ export function run(a: Assumptions, md: MarketData): Result {
   }
   const genYear = E; // full-year generation without curtailment
   let capRev = 0, capGen = 0;
-  for (let m = 0; m < 12; m++) for (let h = 0; h < 24; h++) { capGen += md.windShares[m][h]; capRev += md.windShares[m][h] * md.priceShape[m][h]; }
+  for (let m = 0; m < 12; m++) for (let h = 0; h < 24; h++) { capGen += ws[m][h]; capRev += ws[m][h] * md.priceShape[m][h]; }
 
   const kpis: Kpis = {
     capexExVat: capexTotal,

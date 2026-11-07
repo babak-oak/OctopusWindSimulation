@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import type { Assumptions, Kpis, MarketData, Result } from '../engine/types';
-import { annualGeneration, capacityKW } from '../engine/model';
+import { annualGeneration, capacityKW, windShares } from '../engine/model';
 import { heatmap, riskRegister, scenarioTable, waterfall, type ScenarioId, type StressSizes } from '../engine/scenarios';
 import { Bars, Columns, Heatmap12x24, Lines, SensGrid, Waterfall, type Title } from './charts';
 import { S, tr, type Lang } from './i18n';
@@ -154,7 +154,7 @@ function Overview({ r, base, scenario, lang, a }: Props) {
 function Gen({ a, md, r, scenario, lang, projectName }: Props) {
   const E = annualGeneration(a);
   const sc = scenarioLabel(scenario, lang);
-  const genM = md.windShares.map((row) => row.map((s) => s * E));
+  const genM = windShares(a, md).map((row) => row.map((s) => s * E));
   const priceM = md.priceShape.map((row) => row.map((c) => c * a.market.basePrice * a.stress.priceMult));
   const full = r.annual.find((y) => y.generation > 0 && r.annual.indexOf(y) > 1) ?? r.annual[2];
   const months = r.flows.date.map((d, i) => ({ d, i })).filter(({ d }) => d.startsWith(String(full.year)));

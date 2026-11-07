@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { Gate, ReadOnly } from './readonly';
+import { SitePanel } from './SitePanel';
 import type { Assumptions } from '../engine/types';
 import { capacityKW, itemQty, staffAnnualCost, staffCount } from '../engine/model';
 import { GROUPS, OEM, getPath, setPath, type Field } from './fields';
@@ -13,7 +14,7 @@ interface Props {
   onChange: (a: Assumptions) => void;
 }
 
-function NumberInput({ value, decimals, onCommit, label }: { value: number; decimals: number; onCommit: (v: number) => void; label: string }) {
+export function NumberInput({ value, decimals, onCommit, label }: { value: number; decimals: number; onCommit: (v: number) => void; label: string }) {
   const [draft, setDraft] = useState<string | null>(null);
   const ro = useContext(ReadOnly);
   const gate = useContext(Gate);
@@ -56,6 +57,8 @@ function FieldRow({ f, a, d, lang, onChange }: { f: Field } & Props) {
     const basisTxt = sc.basis === 'turbines'
       ? (lang === 'uk' ? `∝ кількості ВЕУ; еталон ${ref.turbines} шт.: ${num(Number(v), dec)}` : `∝ turbine count; reference ${ref.turbines}: ${num(Number(v), dec)}`)
       : (lang === 'uk' ? `∝ встановленій потужності; еталон ${num(ref.turbines * ref.turbineMW, 1)} МВт: ${num(Number(v), dec)}` : `∝ installed MW; reference ${num(ref.turbines * ref.turbineMW, 1)} MW: ${num(Number(v), dec)}`);
+    const site = f.path === 'generation.netAEP_MWh' && a.generation.site?.mode === 'site' && a.generation.site.result;
+    const srcTxt = site ? (lang === 'uk' ? 'за координатами: блок «Джерело генерації»' : 'from the coordinates: see «Generation source»') : basisTxt;
     return (
       <div className={`field${!auto ? ' changed' : ''}`}>
         <div className="field-head">
@@ -67,7 +70,7 @@ function FieldRow({ f, a, d, lang, onChange }: { f: Field } & Props) {
           <NumberInput value={eff} decimals={dec} label={label} onCommit={(x) => onChange(setPath(a, sc.manual, x))} />
           <span className="unit">{tr(f.unit, lang)}</span>
         </div>
-        <div className="field-src">{auto ? (lang === 'uk' ? 'авто ' : 'auto ') : (lang === 'uk' ? 'вручну ' : 'manual ')}{basisTxt}</div>
+        <div className="field-src">{auto ? (lang === 'uk' ? 'авто ' : 'auto ') : (lang === 'uk' ? 'вручну ' : 'manual ')}{srcTxt}</div>
         {info && <div className="field-src">{tr(S.source, lang)}: {f.source}</div>}
         {f.path === 'generation.netAEP_MWh' && <div className="field-note">{tr(S.aepNote, lang)}</div>}
       </div>
@@ -203,6 +206,8 @@ export function AssumptionsPanel(p: Props) {
           </label>
         </div>
       </section>
+
+      <SitePanel a={a} lang={lang} onChange={onChange} preset={preset} />
 
       {GROUPS.map((g) => (
         <section className="group" key={g.id}>

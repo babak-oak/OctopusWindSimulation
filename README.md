@@ -50,3 +50,18 @@ Without an account the open model shows the reference project read-only: tabs an
 opens a sign-up prompt. Contacts page (`#/contacts`) with a pre-filled email for a SANY equipment offer.
 Supabase setup and the GoDaddy mail settings: `docs/SUPABASE_SETUP.md`. Without `VITE_SUPABASE_URL` /
 `VITE_SUPABASE_ANON_KEY` the site runs in local mode.
+
+## Generation by coordinates (stage 3b)
+
+The assumptions panel has a «Generation source» switch: the manufacturer proposal (default, Net AEP and the 12 × 24
+profile from the offer) or the site. For the site the browser downloads hourly ERA5 at 100 m (Open-Meteo archive) for
+20 full years, carries it to hub height with the shear law, corrects for air density, applies a power curve
+(`data/power_curves.json`: Vestas V162-6.0, Nordex N163/6.X 7.0 MW, a generic NREL IEC III curve, or a pasted curve),
+deducts a fixed wake loss and returns Net AEP P50, P90 (one year, inter-annual variability) and the 12 × 24 profile.
+Wind input: ERA5 only, ERA5 scaled to a long-term mean speed, or ERA5 scaled to an uploaded mast/LiDAR file
+(CSV/TXT, any timestamp column plus numeric channels).
+
+Calibration on Volodymyrets (`data/wind_calibration.json`, `scripts/calibrate-wind.ts`): ERA5 vs the GEO-NET mast
+(Dovhovolya, 60–123 m, 2020–2022), shear α 0.288, multiplier 1.004 that reproduces the GEO-NET yield assessment
+(12 × V162-6.0 at 149 m, 239,939 MWh/yr with wake) at 5.5% wake, and a 12 × 24 diurnal correction. The
+`ERA5 fetch` workflow downloads a series for the calibration script.
