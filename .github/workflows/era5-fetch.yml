@@ -1,0 +1,26 @@
+name: ERA5 fetch (calibration helper)
+# Downloads an hourly ERA5 series from Open-Meteo for one point and keeps it as a workflow artifact.
+# Used to calibrate the site wind method (scripts/calibrate_wind.py); the web app itself fetches ERA5 in the browser.
+on:
+  workflow_dispatch:
+    inputs:
+      lat: { description: 'Latitude', required: true }
+      lon: { description: 'Longitude', required: true }
+      start: { description: 'Start date YYYY-MM-DD', required: true, default: '2001-01-01' }
+      end: { description: 'End date YYYY-MM-DD', required: true, default: '2024-12-31' }
+      name: { description: 'Artifact name', required: true, default: 'era5' }
+permissions:
+  contents: read
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download
+        run: |
+          url="https://archive-api.open-meteo.com/v1/archive?latitude=${{ inputs.lat }}&longitude=${{ inputs.lon }}&start_date=${{ inputs.start }}&end_date=${{ inputs.end }}&hourly=wind_speed_100m,wind_direction_100m,wind_speed_10m,temperature_2m,surface_pressure&wind_speed_unit=ms&timezone=GMT&models=era5"
+          curl -sS --fail --retry 3 -o era5.json "$url"
+          head -c 400 era5.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.name }}
+          path: era5.json
