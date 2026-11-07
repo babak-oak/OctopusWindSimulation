@@ -48,6 +48,21 @@ export function ModelView({ a, onChange, lang, readOnly = false, toolbar, stress
   const [tab, setTab] = useState<Tab>('overview');
   const base = useMemo(() => run(a, marketData), [a]);
   const r = useMemo(() => (scenario === 'base' ? base : run(applyScenario(a, scenario, stress), marketData)), [a, scenario, stress, base]);
+  const [exporting, setExporting] = useState(false);
+  const [exportErr, setExportErr] = useState<string | null>(null);
+  async function exportXlsx() {
+    if (gate) { gate(); return; }
+    setExporting(true); setExportErr(null);
+    try {
+      const { downloadProjectXlsx } = await import('../export/xlsx');
+      await downloadProjectXlsx({ base: a, md: marketData, lang, scenario, stress });
+    } catch (e) {
+      console.error(e);
+      setExportErr(lang === 'uk' ? 'Не вдалося сформувати файл Excel.' : 'Could not build the Excel file.');
+    } finally {
+      setExporting(false);
+    }
+  }
   return (
     <Gate.Provider value={gate ?? null}>
     <ReadOnly.Provider value={readOnly}>
@@ -62,6 +77,11 @@ export function ModelView({ a, onChange, lang, readOnly = false, toolbar, stress
             <option value="S4">{tr(S.s4, lang)}</option>
           </select>
         </label>
+        <button className="btn-ghost small-btn" onClick={exportXlsx} disabled={exporting}
+          title={lang === 'uk' ? 'Модель з формулами для поточного сценарію' : 'Model with formulas for the current scenario'}>
+          {exporting ? (lang === 'uk' ? 'Формую Excel…' : 'Building Excel…') : (lang === 'uk' ? 'Завантажити Excel' : 'Download Excel')}
+        </button>
+        {exportErr && <span className="field-warn" role="alert">{exportErr}</span>}
       </div>
       <div className={`layout${readOnly ? ' readonly' : ''}`}>
         <AssumptionsPanel a={a} d={defaults} lang={lang} onChange={gate ? () => gate() : readOnly || !onChange ? () => undefined : onChange} />

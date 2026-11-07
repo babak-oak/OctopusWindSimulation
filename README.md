@@ -65,3 +65,13 @@ Calibration on Volodymyrets (`data/wind_calibration.json`, `scripts/calibrate-wi
 (Dovhovolya, 60–123 m, 2020–2022), shear α 0.288, multiplier 1.004 that reproduces the GEO-NET yield assessment
 (12 × V162-6.0 at 149 m, 239,939 MWh/yr with wake) at 5.5% wake, and a 12 × 24 diurnal correction. The
 `ERA5 fetch` workflow downloads a series for the calibration script.
+
+## Excel export (stage 5)
+
+«Завантажити Excel» in the model bar (owner, view-only link, signed-in users) builds the current scenario as a
+workbook with live formulas in the browser (`src/export/`): Inputs, KPI, Annual, Calc, Staff, Profiles, Capex, Funding,
+Timeline — a port of the reference generator — plus Sensitivity and Risks as values. A small formula evaluator
+(`evaluate.ts`) fills cached values so previews show numbers before Excel recalculates; `test/export.test.ts` checks the
+evaluated KPIs against the engine. Independent check in LibreOffice:
+`npx tsx scripts/export-check.ts <dir>` then `python3 -I scripts/compare_export.py <dir> <recalc.py>` (5 cases, 26.5k
+formulas, 0 errors, max difference 2e-12).
